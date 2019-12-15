@@ -1,11 +1,13 @@
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_primitives.h>
 #include <allegro5/allegro_font.h>
+#include <allegro5/allegro_image.h>
 #include <stdio.h>
 #include <math.h>
 
 #include "app.h"
 #include "game.h"
+#include "img.h"
 
 void
 run_app(app_t *app);
@@ -32,6 +34,7 @@ run_app(app_t *app)
     double t, tl, tprev;
     double frame_rate = 256.0;
     double frame_time = 0.0;
+    images_t *images = NULL;
 
     al_init();
 
@@ -44,7 +47,11 @@ run_app(app_t *app)
     }
 
     if (!al_init_font_addon()) {
-        die("Initializing primitives addon failed");
+        die("Initializing font addon failed");
+    }
+
+    if (!al_init_image_addon()) {
+        die("Initializing image addon failed");
     }
 
     display = al_create_display(640, 480);
@@ -57,9 +64,9 @@ run_app(app_t *app)
     event_queue = al_create_event_queue();
     al_register_event_source(event_queue, al_get_keyboard_event_source());
 
-    drawbuf = al_create_bitmap(320, 240);
+    images = load_images("data/");
 
-    app->init(app);
+    drawbuf = al_create_bitmap(320, 240);
 
     t = tl = tprev = al_get_time();
 
@@ -68,11 +75,11 @@ run_app(app_t *app)
         t = al_get_time();
         while (tl < t) {
             tl += 1.0 / frame_rate;
-            app->tick(app, 1.0 / frame_rate);
+            if (app->tick) app->tick(app, 1.0 / frame_rate);
         }
         frame_time = t - tprev;
 
-        app->draw(app, drawbuf);
+        if (app->draw) app->draw(app, drawbuf, images);
         ALLEGRO_BITMAP* backbuf = al_get_backbuffer(display);
         al_set_target_backbuffer(display);
         al_draw_scaled_bitmap(drawbuf,
@@ -102,7 +109,7 @@ run_app(app_t *app)
                         }
                         break;
                 }
-                app->event(app, &ev);
+                if (app->event) app->event(app, &ev);
             }
         }
     }

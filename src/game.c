@@ -1,7 +1,10 @@
 #include "game.h"
 #include "tilemap.h"
+#include "img.h"
+#include "asset_ids.h"
 
 #include <allegro5/allegro_primitives.h>
+#include <math.h>
 
 typedef struct game_state_t {
     tilemap_t *map;
@@ -77,7 +80,7 @@ void game_event(struct app_t* app, const ALLEGRO_EVENT* ev)
 }
 
 void
-game_draw(const app_t* app, ALLEGRO_BITMAP* target)
+game_draw(const app_t* app, ALLEGRO_BITMAP* target, const images_t* images)
 {
     const game_state_t* state = app->state;
     int x, y;
@@ -86,6 +89,7 @@ game_draw(const app_t* app, ALLEGRO_BITMAP* target)
     int x0, y0;
     tile_t t;
     ALLEGRO_COLOR color;
+    ALLEGRO_BITMAP *tile_bmp;
     al_set_target_bitmap(target);
 
     tx0 = (int)floor(state->cam_x) >> 5;
@@ -102,18 +106,26 @@ game_draw(const app_t* app, ALLEGRO_BITMAP* target)
             t = tilemap_get(state->map, tx, ty);
             switch (t) {
                 case '.':
+                    tile_bmp = get_image(images, IMG_ASSET_TILE_SNOW);
                     color = al_map_rgb(240, 248, 255);
                     break;
                 case '~':
+                    tile_bmp = get_image(images, IMG_ASSET_TILE_WATER);
                     color = al_map_rgb(0, 32, 128);
                     break;
                 default:
+                    tile_bmp = NULL;
                     color = al_map_rgb(255, 128, 0);
                     break;
             }
-            al_draw_filled_rectangle(
-                x, y, x + 32, y + 32,
-                color);
+            if (tile_bmp) {
+                al_draw_bitmap(tile_bmp, x, y, 0);
+            }
+            else {
+                al_draw_filled_rectangle(
+                    x, y, x + 32, y + 32,
+                    color);
+            }
             x += 32;
         }
         y += 32;

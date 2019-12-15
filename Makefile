@@ -28,7 +28,7 @@ DCOMPILE_FLAGS = -D DEBUG
 INCLUDES = $(SRC_PATH)
 
 # General linker settings
-LINK_FLAGS = -lallegro -lallegro_primitives -lallegro_font -lm
+LINK_FLAGS = -lallegro -lallegro_primitives -lallegro_font -lallegro_image -lm
 
 # Additional release-specific linker settings
 RLINK_FLAGS =
