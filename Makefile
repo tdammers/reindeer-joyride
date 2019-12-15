@@ -16,7 +16,7 @@ SRC_PATH = ./src
 LIBS =
 
 # General compiler flags
-COMPILE_FLAGS = -Wall -Wextra -g
+COMPILE_FLAGS = -Wall -Wextra -Werror -O2
 
 # Additional release-specific flags
 RCOMPILE_FLAGS = -D NDEBUG

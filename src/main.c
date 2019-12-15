@@ -18,6 +18,8 @@ die(const char* msg);
 int
 main(int argc, char **argv)
 {
+    (void)argc;
+    (void)argv;
     app_t *game = create_game("data/maps/test.tilemap");
     run_app(game);
     destroy_app(game);
@@ -54,6 +56,7 @@ run_app(app_t *app)
         die("Initializing image addon failed");
     }
 
+    // al_set_new_display_flags(ALLEGRO_FULLSCREEN_WINDOW);
     display = al_create_display(640, 480);
     if (!display) {
         die("Could not create display");
@@ -64,9 +67,9 @@ run_app(app_t *app)
     event_queue = al_create_event_queue();
     al_register_event_source(event_queue, al_get_keyboard_event_source());
 
-    images = load_images("data/");
-
     drawbuf = al_create_bitmap(320, 240);
+    al_set_new_bitmap_flags(ALLEGRO_MEMORY_BITMAP);
+    images = load_images("data/");
 
     t = tl = tprev = al_get_time();
 

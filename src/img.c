@@ -42,7 +42,7 @@ unload_images(images_t* images)
 }
 
 ALLEGRO_BITMAP*
-get_image(images_t* images, int i)
+get_image(const images_t* images, int i)
 {
     if (!images) return NULL;
     if (!images->images) return NULL;

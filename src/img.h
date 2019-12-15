@@ -11,4 +11,4 @@ void
 unload_images(images_t*);
 
 ALLEGRO_BITMAP*
-get_image(images_t*, int);
+get_image(const images_t*, int);
