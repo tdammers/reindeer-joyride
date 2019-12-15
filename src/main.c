@@ -1,6 +1,8 @@
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_primitives.h>
+#include <allegro5/allegro_font.h>
 #include <stdio.h>
+#include <math.h>
 
 #include "app.h"
 #include "game.h"
@@ -26,8 +28,10 @@ run_app(app_t *app)
     ALLEGRO_EVENT_QUEUE *event_queue = NULL;
     ALLEGRO_BITMAP *drawbuf = NULL;
     ALLEGRO_DISPLAY *display = NULL;
-    double t, tl;
+    ALLEGRO_FONT *default_font = NULL;
+    double t, tl, tprev;
     double frame_rate = 30.0;
+    double frame_time = 0.0;
 
     al_init();
 
@@ -39,10 +43,16 @@ run_app(app_t *app)
         die("Initializing primitives addon failed");
     }
 
+    if (!al_init_font_addon()) {
+        die("Initializing primitives addon failed");
+    }
+
     display = al_create_display(800, 600);
     if (!display) {
         die("Could not create display");
     }
+
+    default_font = al_create_builtin_font();
 
     event_queue = al_create_event_queue();
     al_register_event_source(event_queue, al_get_keyboard_event_source());
@@ -51,15 +61,16 @@ run_app(app_t *app)
 
     app->init(app);
 
-    t = tl = al_get_time();
+    t = tl = tprev = al_get_time();
 
     while (running) {
-        tl = t;
+        tprev = t;
         t = al_get_time();
         while (tl < t) {
             tl += 1.0 / frame_rate;
             app->tick(app);
         }
+        frame_time = t - tprev;
 
         app->draw(app, drawbuf);
         ALLEGRO_BITMAP* backbuf = al_get_backbuffer(display);
@@ -68,6 +79,16 @@ run_app(app_t *app)
             0, 0, 320, 240,
             0, 0, al_get_bitmap_width(backbuf), al_get_bitmap_height(backbuf),
             0);
+        {
+            char str[256];
+            if (frame_time < 0.00000000000001) {
+                snprintf(str, 255, "%3.0s FPS", "+++");
+            }
+            else {
+                snprintf(str, 255, "%3.0f FPS", round(1.0 / frame_time));
+            }
+            al_draw_text(default_font, al_map_rgb(255, 128, 0), 10, 10, 0, str);
+        }
         al_flip_display();
         {
             ALLEGRO_EVENT ev;
@@ -85,6 +106,8 @@ run_app(app_t *app)
             }
         }
     }
+    al_destroy_font(default_font);
+    al_destroy_bitmap(drawbuf);
 }
 
 void
