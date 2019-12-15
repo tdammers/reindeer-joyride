@@ -30,7 +30,7 @@ run_app(app_t *app)
     ALLEGRO_DISPLAY *display = NULL;
     ALLEGRO_FONT *default_font = NULL;
     double t, tl, tprev;
-    double frame_rate = 30.0;
+    double frame_rate = 256.0;
     double frame_time = 0.0;
 
     al_init();
@@ -47,7 +47,7 @@ run_app(app_t *app)
         die("Initializing primitives addon failed");
     }
 
-    display = al_create_display(800, 600);
+    display = al_create_display(640, 480);
     if (!display) {
         die("Could not create display");
     }
@@ -68,7 +68,7 @@ run_app(app_t *app)
         t = al_get_time();
         while (tl < t) {
             tl += 1.0 / frame_rate;
-            app->tick(app);
+            app->tick(app, 1.0 / frame_rate);
         }
         frame_time = t - tprev;
 

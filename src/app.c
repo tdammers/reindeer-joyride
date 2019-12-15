@@ -10,7 +10,7 @@ void
 def_app_draw(const struct app_t* app, ALLEGRO_BITMAP* target) { (void)app; (void)target; }
 
 void
-def_app_tick(struct app_t* app) { (void)app; }
+def_app_tick(struct app_t* app, double dt) { (void)app; (void)dt; }
 
 void
 def_app_event(struct app_t* app, const ALLEGRO_EVENT* ev) { (void)app; (void)ev; }
