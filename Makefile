@@ -39,6 +39,11 @@ DLINK_FLAGS =
 # Install path (bin/ is appended automatically)
 INSTALL_PREFIX = /usr/local
 
+default: release
+
+src/asset_ids.h src/asset_ids.c: generators/gen-asset-ids.py data/img/*/*.png
+	generators/gen-asset-ids.py
+
 #### END PROJECT SETTINGS ####
 
 # Optionally you may move the section above to a separate config.mk file, and
