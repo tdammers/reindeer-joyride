@@ -31,6 +31,7 @@ destroy_tilemap(tilemap_t *tilemap)
 tile_t
 tilemap_get(const tilemap_t* m, int x, int y)
 {
+    if (!m) return EMPTY_TILE;
     int ofs = x + y * m->w;
     if (x < 0 || x >= m->w || y < 0 || y >= m->h) return EMPTY_TILE;
     return m->data[ofs];
@@ -39,18 +40,21 @@ tilemap_get(const tilemap_t* m, int x, int y)
 int
 get_tilemap_width(tilemap_t *tilemap)
 {
+    if (!tilemap) return 0;
     return tilemap->w;
 }
 
 int
 get_tilemap_height(tilemap_t *tilemap)
 {
+    if (!tilemap) return 0;
     return tilemap->h;
 }
 
 void
 tilemap_set(tilemap_t* m, int x, int y, tile_t t)
 {
+    if (!m) return;
     int ofs = x + y * m->w;
     if (x < 0 || x >= m->w || y < 0 || y >= m->h) return;
     m->data[ofs] = t;

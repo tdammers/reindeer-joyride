@@ -31,7 +31,7 @@ create_game_state(const char* map_filename)
 void
 destroy_game_state(game_state_t* state)
 {
-    destroy_tilemap(state->map);
+    if (state->map) destroy_tilemap(state->map);
     free(state);
 }
 

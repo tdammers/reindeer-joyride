@@ -10,23 +10,60 @@
 #include "img.h"
 
 void
-run_app(app_t *app);
+run_app(app_t *app, int fullscreen);
 
 void
 die(const char* msg);
 
+typedef struct options_t {
+    const char* track_filename;
+    int fullscreen;
+} options_t;
+
+void
+init_options(options_t* options) {
+    memset(options, 0, sizeof(options_t));
+    options->track_filename = "data/maps/test.tilemap";
+}
+
+void
+parse_options(options_t* options, int argc, char **argv)
+{
+    int i = 1;
+    for (i = 1; i < argc; ++i) {
+        if (argv[i][0] == '-') {
+            if (argv[i][1] == '-') {
+                // long arg
+                const char* arg = argv[i] + 2;
+                if (strcmp(arg, "fullscreen") == 0) {
+                    options->fullscreen = 1;
+                }
+                else {
+                    char msg[512];
+                    snprintf(msg, 512, "Invalid option: %s", argv[i]);
+                    die(msg);
+                }
+            }
+        }
+        else {
+            options->track_filename = argv[i];
+        }
+    }
+}
+
 int
 main(int argc, char **argv)
 {
-    (void)argc;
-    (void)argv;
-    app_t *game = create_game("data/maps/test.tilemap");
-    run_app(game);
+    options_t options;
+    init_options(&options);
+    parse_options(&options, argc, argv);
+    app_t *game = create_game(options.track_filename);
+    run_app(game, options.fullscreen);
     destroy_app(game);
 }
 
 void
-run_app(app_t *app)
+run_app(app_t *app, int fullscreen)
 {
     int running = 1;
     ALLEGRO_EVENT_QUEUE *event_queue = NULL;
@@ -56,7 +93,12 @@ run_app(app_t *app)
         die("Initializing image addon failed");
     }
 
-    al_set_new_display_flags(ALLEGRO_FULLSCREEN_WINDOW);
+    if (fullscreen) {
+        al_set_new_display_flags(ALLEGRO_FULLSCREEN_WINDOW);
+    }
+    else {
+        al_set_new_display_flags(ALLEGRO_WINDOWED);
+    }
     display = al_create_display(640, 480);
     if (!display) {
         die("Could not create display");
