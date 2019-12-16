@@ -124,7 +124,10 @@ run_app(app_t *app, int fullscreen)
         }
         frame_time = t - tprev;
 
-        if (app->draw) app->draw(app, drawbuf, images);
+        if (app->draw) {
+            render_context_t g = { drawbuf, images, default_font };
+            app->draw(app, &g);
+        }
         ALLEGRO_BITMAP* backbuf = al_get_backbuffer(display);
         al_set_target_backbuffer(display);
         al_draw_scaled_bitmap(drawbuf,
@@ -139,7 +142,12 @@ run_app(app_t *app, int fullscreen)
             else {
                 snprintf(str, 255, "%3.0f FPS", round(1.0 / frame_time));
             }
-            al_draw_text(default_font, al_map_rgb(255, 128, 0), 10, 10, 0, str);
+            al_draw_text(
+                default_font,
+                al_map_rgb(255, 128, 0),
+                0, al_get_bitmap_height(al_get_backbuffer(display)) - 10,
+                0,
+                str);
         }
         al_flip_display();
         {
@@ -148,7 +156,7 @@ run_app(app_t *app, int fullscreen)
                 switch (ev.type) {
                     case ALLEGRO_EVENT_KEY_CHAR:
                         switch (ev.keyboard.keycode) {
-                            case ALLEGRO_KEY_ESCAPE:
+                            case ALLEGRO_KEY_Q:
                                 running = false;
                                 break;
                         }

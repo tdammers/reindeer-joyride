@@ -12,6 +12,9 @@ init_reindeer(reindeer_t *reindeer)
     reindeer->rolling_friction = 10.0;
     reindeer->turn_torque = 2.0 * M_PI;
     reindeer->turn_rate = M_PI * 0.5;
+    reindeer->pitch_rate = 2.0;
+    reindeer->climb_force = 100.0;
+    reindeer->max_climb_rate = 100.0;
 }
 
 void
@@ -47,12 +50,42 @@ update_reindeer(reindeer_t *reindeer, double dt)
         reindeer->vangle = fmin(target_vangle, reindeer->vangle + reindeer->turn_torque * dt);
     }
 
+    // process elevator
+    double target_pitch = (double)reindeer->elevator_control;
+    if (reindeer->pitch > target_pitch) {
+        reindeer->pitch = fmax(target_pitch, reindeer->pitch - reindeer->pitch_rate * dt);
+    }
+    if (reindeer->pitch < target_pitch) {
+        reindeer->pitch = fmin(target_pitch, reindeer->pitch + reindeer->pitch_rate * dt);
+    }
+
+    // elevator -> vertical speed
+    double target_valt =
+                reindeer->max_climb_rate * reindeer->pitch *
+                reindeer->v / reindeer->max_speed
+                - fmax(0.0, 20.0 - reindeer->v);
+    if (reindeer->valt > target_valt) {
+        reindeer->valt = fmax(target_valt, reindeer->valt - reindeer->climb_force * dt);
+    }
+    if (reindeer->valt < target_valt) {
+        reindeer->valt = fmin(target_valt, reindeer->valt + reindeer->climb_force * dt);
+    }
+
     // update position
     reindeer->angle += reindeer->vangle * dt;
     double sa = sin(reindeer->angle);
     double ca = cos(reindeer->angle);
     reindeer->x += reindeer->v * dt * sa;
     reindeer->y -= reindeer->v * dt * ca;
+    reindeer->alt += reindeer->valt * dt;
+    if (reindeer->alt < 0.0) {
+        reindeer->alt = 0.0;
+        reindeer->valt = 0.0;
+    }
+    if (reindeer->alt > 256.0) {
+        reindeer->alt = 256.0;
+        reindeer->valt = 0.0;
+    }
 
     // update head bobbing animation
     reindeer->bob_phase += dt * 3 * M_PI;

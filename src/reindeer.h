@@ -4,11 +4,15 @@ typedef struct reindeer_t {
     // physics state
     double x;
     double y;
+    double alt;
 
     double v;
+    double valt;
 
     double angle;
     double vangle;
+
+    double pitch;
 
     // head bobbing/animation
     double bob_phase;
@@ -18,6 +22,7 @@ typedef struct reindeer_t {
     int accel_control;
     int brake_control;
     int turn_control;
+    int elevator_control;
 
     // stats
     double acceleration;
@@ -25,6 +30,9 @@ typedef struct reindeer_t {
     double rolling_friction;
     double turn_torque;
     double turn_rate;
+    double pitch_rate;
+    double climb_force;
+    double max_climb_rate;
 } reindeer_t;
 
 void
