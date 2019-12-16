@@ -12,6 +12,7 @@ with open("src/asset_ids.h", "w") as header:
             source.write('const char* {0}_asset_filenames[] = {1}\n' \
                 .format(typrefix.lower(), '{'))
 
+            i = 0
             for sub in subs:
                 subpath, subprefix = sub
                 completed = subprocess.run(
@@ -20,7 +21,6 @@ with open("src/asset_ids.h", "w") as header:
 
                 asset_filenames = completed.stdout.split()
 
-                i = 0
                 for asset_filename in asset_filenames:
                     tile_name = \
                         os \
@@ -28,7 +28,8 @@ with open("src/asset_ids.h", "w") as header:
                             .basename(asset_filename) \
                             .upper() \
                             .decode('ascii') \
-                            .split(".")[0]
+                            .split(".")[0] \
+                            .replace('-', '_')
                     header.write("#define {0}_ASSET_{1}_{2} {3}\n" \
                         .format(typrefix, subprefix, tile_name, i))
 
@@ -45,4 +46,8 @@ with open("src/asset_ids.h", "w") as header:
 
             source.write("};\n")
 
-        process_subdir("data/img", "IMG", [("tiles", "TILE")])
+        process_subdir("data/img", "IMG", \
+            [
+                ("tiles", "TILE"),
+                ("sprites", "SPRITE")
+            ])

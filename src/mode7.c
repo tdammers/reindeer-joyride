@@ -41,3 +41,34 @@ mode7_project(
 
     return 1;
 }
+
+int
+mode7_unproject(
+    const mode7_view* view,
+    double *screen_x,
+    double *screen_y,
+    double *screen_size_factor,
+    double world_x,
+    double world_y,
+    double world_alt
+)
+{
+    // relative position in world space, centered at camera
+    double rel_x = world_x - view->cam_x;
+    double rel_y = world_y - view->cam_y;
+
+    // camera-space positions
+    double sa = sin(view->cam_angle);
+    double ca = cos(view->cam_angle);
+    double eye_x = -sa * rel_x - ca * rel_y;
+    double eye_y = -sa * rel_y + ca * rel_y;
+    double eye_alt = world_alt - view->cam_alt;
+
+    if (eye_y < view->screen_dist) return 0;
+
+    *screen_x = (double)view->screen_w * 0.5 + eye_x * view->screen_dist / eye_y;
+    *screen_y = (double)view->horizon_screen_y - eye_alt * view->screen_dist / eye_y;
+    *screen_size_factor = view->screen_dist / eye_y;
+
+    return 1;
+}

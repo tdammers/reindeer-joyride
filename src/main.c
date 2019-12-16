@@ -56,7 +56,7 @@ run_app(app_t *app)
         die("Initializing image addon failed");
     }
 
-    // al_set_new_display_flags(ALLEGRO_FULLSCREEN_WINDOW);
+    al_set_new_display_flags(ALLEGRO_FULLSCREEN_WINDOW);
     display = al_create_display(640, 480);
     if (!display) {
         die("Could not create display");

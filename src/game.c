@@ -3,14 +3,15 @@
 #include "img.h"
 #include "asset_ids.h"
 #include "mode7.h"
+#include "reindeer.h"
 
 #include <allegro5/allegro_primitives.h>
 #include <math.h>
 
 typedef struct game_state_t {
     tilemap_t *map;
-    double cam_x, cam_y, cam_angle;
-    double cam_v, cam_vangle;
+    reindeer_t reindeer;
+    int steering_keys;
     int view_mode;
 } game_state_t;
 
@@ -22,6 +23,8 @@ create_game_state(const char* map_filename)
 {
     game_state_t *state = malloc(sizeof(game_state_t));
     state->map = load_tilemap(map_filename);
+    init_reindeer(&(state->reindeer));
+
     return state;
 }
 
@@ -41,11 +44,23 @@ void game_destroy(app_t* app)
 void game_tick(struct app_t* app, double dt)
 {
     game_state_t* state = app->state;
-    double sa = sin(state->cam_angle);
-    double ca = cos(state->cam_angle);
-    state->cam_angle += state->cam_vangle * dt;
-    state->cam_x += sa * state->cam_v * dt;
-    state->cam_y -= ca * state->cam_v * dt;
+    update_reindeer(&(state->reindeer), dt);
+}
+
+static void
+update_steering(game_state_t* state)
+{
+    switch (state->steering_keys) {
+        case 1:
+            state->reindeer.turn_control = -1;
+            break;
+        case 2:
+            state->reindeer.turn_control = 1;
+            break;
+        default:
+            state->reindeer.turn_control = 0;
+            break;
+    }
 }
 
 void game_event(struct app_t* app, const ALLEGRO_EVENT* ev)
@@ -62,44 +77,50 @@ void game_event(struct app_t* app, const ALLEGRO_EVENT* ev)
         case ALLEGRO_EVENT_KEY_DOWN:
             switch (ev->keyboard.keycode) {
                 case ALLEGRO_KEY_LEFT:
-                    state->cam_vangle -= M_PI * 0.25;
+                    state->steering_keys |= 1;
+                    update_steering(state);
                     break;
                 case ALLEGRO_KEY_RIGHT:
-                    state->cam_vangle += M_PI * 0.25;
+                    state->steering_keys |= 2;
+                    update_steering(state);
                     break;
                 case ALLEGRO_KEY_UP:
-                    state->cam_v += 64;
+                    state->reindeer.accel_control = 1;
                     break;
                 case ALLEGRO_KEY_DOWN:
-                    state->cam_v -= 64;
+                    state->reindeer.brake_control = 1;
                     break;
             }
             break;
         case ALLEGRO_EVENT_KEY_UP:
             switch (ev->keyboard.keycode) {
                 case ALLEGRO_KEY_LEFT:
-                    state->cam_vangle += M_PI * 0.25;
+                    state->steering_keys &= ~1;
+                    update_steering(state);
                     break;
                 case ALLEGRO_KEY_RIGHT:
-                    state->cam_vangle -= M_PI * 0.25;
+                    state->steering_keys &= ~2;
+                    update_steering(state);
                     break;
                 case ALLEGRO_KEY_UP:
-                    state->cam_v -= 64;
+                    state->reindeer.accel_control = 0;
                     break;
                 case ALLEGRO_KEY_DOWN:
-                    state->cam_v += 64;
+                    state->reindeer.brake_control = 0;
                     break;
             }
             break;
     }
 }
 
-ALLEGRO_BITMAP* tile_image_for(tile_t t, const images_t* images)
+ALLEGRO_BITMAP* ground_tile_image_for(tile_t t, const images_t* images)
 {
     switch (t) {
-        case '.':
+        case EMPTY_TILE:
+        case TREE_TILE:
+        case HOUSE_TILE:
             return get_image(images, IMG_ASSET_TILE_SNOW);
-        case '~':
+        case WATER_TILE:
             return get_image(images, IMG_ASSET_TILE_WATER);
         default:
             return NULL;
@@ -109,9 +130,11 @@ ALLEGRO_BITMAP* tile_image_for(tile_t t, const images_t* images)
 ALLEGRO_COLOR tile_color_for(tile_t t)
 {
     switch (t) {
-        case '.':
+        case EMPTY_TILE:
+        case TREE_TILE:
+        case HOUSE_TILE:
             return al_map_rgb(240, 248, 255);
-        case '~':
+        case WATER_TILE:
             return al_map_rgb(0, 32, 128);
         default:
             return al_map_rgb(255, 128, 0);
@@ -138,9 +161,9 @@ void game_draw_mode7(const game_state_t* state, ALLEGRO_BITMAP* target, const im
     screen_w = al_get_bitmap_width(target);
     screen_h = al_get_bitmap_height(target);
 
-    view.cam_x = state->cam_x;
-    view.cam_y = state->cam_y;
-    view.cam_angle = state->cam_angle;
+    view.cam_x = state->reindeer.x;
+    view.cam_y = state->reindeer.y;
+    view.cam_angle = state->reindeer.angle;
     view.cam_alt = 16;
     view.screen_w = screen_w;
     view.screen_h = screen_h;
@@ -157,7 +180,7 @@ void game_draw_mode7(const game_state_t* state, ALLEGRO_BITMAP* target, const im
             tx = ground_x >> 5;
             ty = ground_y >> 5;
             t = tilemap_get(state->map, tx, ty);
-            tile_bmp = tile_image_for(t, images);
+            tile_bmp = ground_tile_image_for(t, images);
             if (tile_bmp) {
                 color = al_get_pixel(tile_bmp, ground_x & 31, ground_y & 31);
             }
@@ -173,6 +196,11 @@ void game_draw_mode7(const game_state_t* state, ALLEGRO_BITMAP* target, const im
     al_draw_filled_rectangle(
         0, 0, screen_w, screen_h / 4,
         al_map_rgb(0,0,64));
+
+    al_draw_bitmap(
+        get_image(images, IMG_ASSET_SPRITE_REINDEER_FPV),
+        0, 80.0 + sin(state->reindeer.bob_phase) * state->reindeer.bob_strength * 20.0,
+        0);
 }
 
 void game_draw_top_down(const game_state_t* state, ALLEGRO_BITMAP* target, const images_t* images)
@@ -184,8 +212,8 @@ void game_draw_top_down(const game_state_t* state, ALLEGRO_BITMAP* target, const
     tile_t t;
     double screen_w;
     double screen_h;
-    double sa = sin(state->cam_angle);
-    double ca = cos(state->cam_angle);
+    double sa = sin(state->reindeer.angle);
+    double ca = cos(state->reindeer.angle);
     ALLEGRO_COLOR color;
     ALLEGRO_BITMAP *tile_bmp;
 
@@ -193,19 +221,19 @@ void game_draw_top_down(const game_state_t* state, ALLEGRO_BITMAP* target, const
     screen_w = al_get_bitmap_width(target);
     screen_h = al_get_bitmap_height(target);
 
-    tx0 = (int)floor(state->cam_x - screen_w / 2) >> 5;
+    tx0 = (int)floor(state->reindeer.x - screen_w / 2) >> 5;
     tx1 = tx0 + 11;
-    ty0 = (int)floor(state->cam_y - screen_h / 2) >> 5;
+    ty0 = (int)floor(state->reindeer.y - screen_h / 2) >> 5;
     ty1 = ty0 + 9;
-    x0 = -((int)floor(state->cam_x - screen_w / 2) & 31);
-    y0 = -((int)floor(state->cam_y - screen_h / 2) & 31);
+    x0 = -((int)floor(state->reindeer.x - screen_w / 2) & 31);
+    y0 = -((int)floor(state->reindeer.y - screen_h / 2) & 31);
 
     y = y0;
     for (ty = ty0; ty < ty1; ++ty) {
         x = x0;
         for (tx = tx0; tx < tx1; ++tx) {
             t = tilemap_get(state->map, tx, ty);
-            tile_bmp = tile_image_for(t, images);
+            tile_bmp = ground_tile_image_for(t, images);
             color = tile_color_for(t);
             if (tile_bmp) {
                 al_draw_bitmap(tile_bmp, x, y, 0);
