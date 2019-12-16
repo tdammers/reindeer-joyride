@@ -252,11 +252,22 @@ void game_draw_mode7(const game_state_t* state, const render_context_t* g)
     view.screen_dist = screen_h * 2;
     view.horizon_screen_y = screen_h / 4 + state->reindeer.pitch * screen_h / 8;
 
-    al_draw_filled_rectangle(
-        0, 0,
-        screen_w, screen_h,
-        al_map_rgb(0,0,64));
+    // al_draw_filled_rectangle(
+    //     0, 0,
+    //     screen_w, screen_h,
+    //     al_map_rgb(0,0,64));
 
+    ALLEGRO_BITMAP* background = get_image(g->images, IMG_ASSET_BACKGROUND_NIGHT_SKY);
+    int bg_w = al_get_bitmap_width(background);
+    int bg_h = al_get_bitmap_height(background);
+    int bg_x = (int)round(-view.cam_angle * (double)bg_w * 0.5 / M_PI) % bg_w;
+    int bg_y = view.horizon_screen_y - bg_h;
+    for (x = bg_x - bg_w; x < screen_w; x += bg_w) {
+        al_draw_bitmap(
+            background,
+            x, bg_y,
+            0);
+    }
 
     al_lock_bitmap(g->target, ALLEGRO_PIXEL_FORMAT_ANY, ALLEGRO_LOCK_READWRITE);
 

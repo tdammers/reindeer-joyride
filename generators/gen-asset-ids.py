@@ -49,5 +49,6 @@ with open("src/asset_ids.h", "w") as header:
         process_subdir("data/img", "IMG", \
             [
                 ("tiles", "TILE"),
-                ("sprites", "SPRITE")
+                ("sprites", "SPRITE"),
+                ("backgrounds", "BACKGROUND")
             ])
