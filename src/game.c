@@ -7,6 +7,7 @@
 
 #include <allegro5/allegro_primitives.h>
 #include <math.h>
+#include <stdio.h>
 
 typedef struct game_state_t {
     tilemap_t *map;
@@ -127,6 +128,16 @@ ALLEGRO_BITMAP* ground_tile_image_for(tile_t t, const images_t* images)
     }
 }
 
+ALLEGRO_BITMAP* billboard_tile_image_for(tile_t t, const images_t* images)
+{
+    switch (t) {
+        case TREE_TILE:
+            return get_image(images, IMG_ASSET_SPRITE_TREE);
+        default:
+            return NULL;
+    }
+}
+
 ALLEGRO_COLOR tile_color_for(tile_t t)
 {
     switch (t) {
@@ -141,12 +152,49 @@ ALLEGRO_COLOR tile_color_for(tile_t t)
     }
 }
 
+void
+draw_mode7_billboard_sprite(
+    const game_state_t* state,
+    const mode7_view* view,
+    const images_t* images,
+    int tx,
+    int ty)
+{
+    double sprite_x, sprite_y, sprite_size;
+    tile_t t;
+    ALLEGRO_BITMAP* billboard_bmp;
+
+    t = tilemap_get(state->map, tx, ty);
+    billboard_bmp = billboard_tile_image_for(t, images);
+    if (billboard_bmp) {
+        if (!mode7_unproject(view,
+                &sprite_x, &sprite_y, &sprite_size,
+                (tx << 5) + 16, (ty << 5) + 16, 0)) {
+            return;
+        }
+        double sw = (double)al_get_bitmap_width(billboard_bmp);
+        double sh = (double)al_get_bitmap_height(billboard_bmp);
+        double dw = sprite_size * sw;
+        double dh = sprite_size * sh;
+        al_draw_scaled_bitmap(
+            billboard_bmp,
+            0.0, 0.0,
+            sw, sh,
+            sprite_x - dw * 0.5,
+            sprite_y - dh,
+            dw, dh,
+            0);
+    }
+}
 
 void game_draw_mode7(const game_state_t* state, ALLEGRO_BITMAP* target, const images_t* images)
 {
     tile_t t;
     int x, y;
     int tx, ty;
+    int tx0, tx1, ty0, ty1;
+    int tdx, tdy;
+    int sx, sy;
     double screen_w;
     double screen_h;
     double fground_x;
@@ -179,10 +227,12 @@ void game_draw_mode7(const game_state_t* state, ALLEGRO_BITMAP* target, const im
             ground_y = (int)floor(fground_y);
             tx = ground_x >> 5;
             ty = ground_y >> 5;
+            sx = ground_x & 31;
+            sy = ground_y & 31;
             t = tilemap_get(state->map, tx, ty);
             tile_bmp = ground_tile_image_for(t, images);
             if (tile_bmp) {
-                color = al_get_pixel(tile_bmp, ground_x & 31, ground_y & 31);
+                color = al_get_pixel(tile_bmp, sx, sy);
             }
             else {
                 color = tile_color_for(t);
@@ -196,6 +246,47 @@ void game_draw_mode7(const game_state_t* state, ALLEGRO_BITMAP* target, const im
     al_draw_filled_rectangle(
         0, 0, screen_w, screen_h / 4,
         al_map_rgb(0,0,64));
+
+
+    double sa = sin(view.cam_angle);
+    double ca = cos(view.cam_angle);
+
+    if (ca > 0.0) {
+        ty0 = ((int)floor(state->reindeer.y) >> 5) - 128;
+        ty1 = ty0 + 256;
+        tdy = 1;
+    }
+    else {
+        ty1 = ((int)floor(state->reindeer.y) >> 5) - 128;
+        ty0 = ty1 + 256;
+        tdy = -1;
+    }
+
+    if (sa < 0.0) {
+        tx0 = ((int)floor(state->reindeer.x) >> 5) - 128;
+        tx1 = tx0 + 256;
+        tdx = 1;
+    }
+    else {
+        tx1 = ((int)floor(state->reindeer.x) >> 5) - 128;
+        tx0 = tx1 + 256;
+        tdx = -1;
+    }
+
+    if (fabs(ca) > fabs(sa)) {
+        for (ty = ty0; ty != ty1; ty += tdy) {
+            for (tx = tx0; tx != tx1; tx += tdx) {
+                draw_mode7_billboard_sprite(state, &view, images, tx, ty);
+            }
+        }
+    }
+    else {
+        for (tx = tx0; tx != tx1; tx += tdx) {
+            for (ty = ty0; ty != ty1; ty += tdy) {
+                draw_mode7_billboard_sprite(state, &view, images, tx, ty);
+            }
+        }
+    }
 
     al_draw_bitmap(
         get_image(images, IMG_ASSET_SPRITE_REINDEER_FPV),

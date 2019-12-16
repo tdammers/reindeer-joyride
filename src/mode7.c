@@ -60,15 +60,15 @@ mode7_unproject(
     // camera-space positions
     double sa = sin(view->cam_angle);
     double ca = cos(view->cam_angle);
-    double eye_x = -sa * rel_x - ca * rel_y;
-    double eye_y = -sa * rel_y + ca * rel_y;
+    double eye_x = ca * rel_x + sa * rel_y;
+    double eye_y = ca * rel_y - sa * rel_x;
     double eye_alt = world_alt - view->cam_alt;
 
-    if (eye_y < view->screen_dist) return 0;
+    if (eye_y > -8.0) return 0;
 
-    *screen_x = (double)view->screen_w * 0.5 + eye_x * view->screen_dist / eye_y;
-    *screen_y = (double)view->horizon_screen_y - eye_alt * view->screen_dist / eye_y;
-    *screen_size_factor = view->screen_dist / eye_y;
+    *screen_x = (double)view->screen_w * 0.5 - eye_x * view->screen_dist / eye_y;
+    *screen_y = (double)view->horizon_screen_y + eye_alt * view->screen_dist / eye_y;
+    *screen_size_factor = view->screen_dist / -eye_y;
 
     return 1;
 }
