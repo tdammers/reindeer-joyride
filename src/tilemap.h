@@ -28,8 +28,14 @@ tilemap_set(tilemap_t*, int, int, tile_t);
 tilemap_t*
 load_tilemap(const char* filename);
 
-int
+double
 get_tilemap_start_x(const tilemap_t*);
 
-int
+double
 get_tilemap_start_y(const tilemap_t*);
+
+double
+get_tilemap_checkpoint_x(const tilemap_t*, int);
+
+double
+get_tilemap_checkpoint_y(const tilemap_t*, int);

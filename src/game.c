@@ -28,8 +28,8 @@ create_game_state(const char* map_filename)
     game_state_t *state = malloc(sizeof(game_state_t));
     state->map = load_tilemap(map_filename);
     init_reindeer(&(state->reindeer));
-    state->reindeer.x = (get_tilemap_start_x(state->map) << 5) + 16;
-    state->reindeer.y = ((get_tilemap_start_y(state->map) + 1) << 5) + 16;
+    state->reindeer.x = (get_tilemap_start_x(state->map) * 32.0) + 16;
+    state->reindeer.y = ((get_tilemap_start_y(state->map) + 1) * 32.0) + 16;
 
     return state;
 }
@@ -426,6 +426,29 @@ void game_draw_top_down(const game_state_t* state, const render_context_t* g)
 }
 
 void
+draw_next_checkpoint_arrow(const game_state_t* state, const render_context_t* g)
+{
+    double cx, cy;
+    if (state->reindeer.next_checkpoint < 0) {
+        cx = get_tilemap_start_x(state->map);
+        cy = get_tilemap_start_y(state->map);
+    }
+    else {
+        cx = get_tilemap_checkpoint_x(state->map, state->reindeer.next_checkpoint);
+        cy = get_tilemap_checkpoint_y(state->map, state->reindeer.next_checkpoint);
+    }
+    double dx = (cx * 32.0) - state->reindeer.x;
+    double dy = (cy * 32.0) - state->reindeer.y;
+    double dangle = atan2(-dx, dy);
+    double angle = dangle - state->reindeer.angle;
+    double sx = 160 - sin(angle) * 144;
+    double sy = 120 + cos(angle) * 104;
+    al_draw_rotated_bitmap(
+        get_image(g->images, IMG_ASSET_SPRITE_WAYPOINT_ARROW_GREEN),
+        16, 16, sx, sy, angle, 0);
+}
+
+void
 draw_stats(const game_state_t* state, const render_context_t* g)
 {
     char str[512];
@@ -487,6 +510,7 @@ game_draw(const app_t* app, const render_context_t* g)
             game_draw_top_down(state, g);
             break;
     }
+    draw_next_checkpoint_arrow(state, g);
     draw_stats(state, g);
 }
 

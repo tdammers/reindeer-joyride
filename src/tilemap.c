@@ -9,8 +9,10 @@ struct tilemap_t {
     int h;
     tile_t *data;
     int max_checkpoint;
-    int start_x;
-    int start_y;
+    double start_x;
+    double start_y;
+    double checkpoint_x[10];
+    double checkpoint_y[10];
 };
 
 tilemap_t*
@@ -56,18 +58,36 @@ get_tilemap_height(const tilemap_t *tilemap)
 }
 
 
-int
+double
 get_tilemap_start_x(const tilemap_t* tilemap)
 {
     if (!tilemap) return 0;
     return tilemap->start_x;
 }
 
-int
+double
 get_tilemap_start_y(const tilemap_t* tilemap)
 {
     if (!tilemap) return 0;
     return tilemap->start_y;
+}
+
+double
+get_tilemap_checkpoint_x(const tilemap_t* tilemap, int i)
+{
+    if (!tilemap) return 0;
+    if (i < 0) return 0;
+    if (i > tilemap->max_checkpoint) return 0;
+    return tilemap->checkpoint_x[i];
+}
+
+double
+get_tilemap_checkpoint_y(const tilemap_t* tilemap, int i)
+{
+    if (!tilemap) return 0;
+    if (i < 0) return 0;
+    if (i > tilemap->max_checkpoint) return 0;
+    return tilemap->checkpoint_y[i];
 }
 
 int
@@ -91,6 +111,8 @@ load_tilemap(const char* filename)
 {
     int w, h;
     char c;
+    double checkpoint_count[10] = {0};
+    double start_count = 0;
     tilemap_t *m;
     FILE *f = fopen(filename, "r");
     if (!f) {
@@ -103,19 +125,29 @@ load_tilemap(const char* filename)
             c = fgetc(f);
             tilemap_set(m, x, y, c);
             if (c >= CHECKPOINT0_TILE && c <= CHECKPOINT9_TILE) {
-                int checkpoint = c - CHECKPOINT0_TILE;
-                if (checkpoint > m->max_checkpoint) {
-                    m->max_checkpoint = checkpoint;
+                int i = c - CHECKPOINT0_TILE;
+                if (i > m->max_checkpoint) {
+                    m->max_checkpoint = i;
                 }
+                checkpoint_count[i] += 1;
+                m->checkpoint_x[i] += x;
+                m->checkpoint_y[i] += y;
             }
             if (c == START_FINISH_TILE) {
-                m->start_x = x;
-                m->start_y = y;
+                start_count += 1;
+                m->start_x += x;
+                m->start_y += y;
             }
         }
         c = fgetc(f);
         assert(c == '\n');
     }
     fclose(f);
+    m->start_x /= start_count;
+    m->start_y /= start_count;
+    for (int i = 0; i < 10; ++i) {
+        m->checkpoint_x[i] /= checkpoint_count[i];
+        m->checkpoint_y[i] /= checkpoint_count[i];
+    }
     return m;
 }
