@@ -103,6 +103,9 @@ run_app(app_t *app, int fullscreen)
     if (!display) {
         die("Could not create display");
     }
+    fprintf(stderr, "Display size: %ix%i\n",
+        al_get_display_width(display),
+        al_get_display_height(display));
 
     default_font = al_create_builtin_font();
 
@@ -128,11 +131,24 @@ run_app(app_t *app, int fullscreen)
             render_context_t g = { drawbuf, images, default_font };
             app->draw(app, &g);
         }
-        ALLEGRO_BITMAP* backbuf = al_get_backbuffer(display);
         al_set_target_backbuffer(display);
+        int l, t, w, h;
+        int display_w = al_get_display_width(display);
+        int display_h = al_get_display_height(display);
+        if (display_w * 240 >= display_h * 320) {
+            h = display_h;
+            w = display_h * 320 / 240;
+        }
+        else {
+            w = display_w;
+            h = display_w * 240 / 320;
+        }
+        l = (display_w - w) / 2;
+        t = (display_h - h) / 2;
+        al_clear_to_color(al_map_rgb(0,0,0));
         al_draw_scaled_bitmap(drawbuf,
             0, 0, 320, 240,
-            0, 0, al_get_bitmap_width(backbuf), al_get_bitmap_height(backbuf),
+            l, t, w, h,
             0);
         {
             char str[256];
