@@ -157,6 +157,8 @@ ALLEGRO_BITMAP* ground_tile_image_for(tile_t t, const images_t* images)
             return get_image(images, IMG_ASSET_TILE_SNOW);
         case WATER_TILE:
             return get_image(images, IMG_ASSET_TILE_WATER);
+        case START_FINISH_TILE:
+            return get_image(images, IMG_ASSET_TILE_START_FINISH);
         default:
             return NULL;
     }
@@ -165,10 +167,9 @@ ALLEGRO_BITMAP* ground_tile_image_for(tile_t t, const images_t* images)
 ALLEGRO_BITMAP* billboard_tile_image_for(tile_t t, const images_t* images)
 {
     switch (t) {
-        case TREE_TILE:
-            return get_image(images, IMG_ASSET_SPRITE_TREE);
-        default:
-            return NULL;
+        case TREE_TILE: return get_image(images, IMG_ASSET_SPRITE_TREE);
+        case HOUSE_TILE: return get_image(images, IMG_ASSET_SPRITE_HOUSE1);
+        default: return NULL;
     }
 }
 
@@ -398,6 +399,17 @@ draw_stats(const game_state_t* state, const render_context_t* g)
     char str[512];
     int x = 2;
     int y = 2;
+
+    snprintf(str, 512,
+        "Lap %i, next checkpoint %i",
+        state->reindeer.laps_finished + 1,
+        state->reindeer.next_checkpoint);
+    al_draw_text(
+        g->font,
+        al_map_rgb(255, 128, 0),
+        x, y, 0,
+        str);
+    y += 10;
 
     snprintf(str, 512,
         "SPD: %3.0f",

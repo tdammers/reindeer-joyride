@@ -8,6 +8,7 @@ struct tilemap_t {
     int w;
     int h;
     tile_t *data;
+    int max_checkpoint;
 };
 
 tilemap_t*
@@ -17,6 +18,7 @@ create_tilemap(int w, int h)
     tilemap->w = w;
     tilemap->h = h;
     tilemap->data = malloc(sizeof(tile_t) * w * h);
+    tilemap->max_checkpoint = -1;
     memset(tilemap->data, 0, sizeof(tile_t) * w * h);
     return tilemap;
 }
@@ -38,17 +40,24 @@ tilemap_get(const tilemap_t* m, int x, int y)
 }
 
 int
-get_tilemap_width(tilemap_t *tilemap)
+get_tilemap_width(const tilemap_t *tilemap)
 {
     if (!tilemap) return 0;
     return tilemap->w;
 }
 
 int
-get_tilemap_height(tilemap_t *tilemap)
+get_tilemap_height(const tilemap_t *tilemap)
 {
     if (!tilemap) return 0;
     return tilemap->h;
+}
+
+int
+get_tilemap_max_checkpoint(const tilemap_t *tilemap)
+{
+    if (!tilemap) return 0;
+    return tilemap->max_checkpoint;
 }
 
 void
@@ -76,6 +85,12 @@ load_tilemap(const char* filename)
         for (int x = 0; x < w; ++x) {
             c = fgetc(f);
             tilemap_set(m, x, y, c);
+            if (c >= CHECKPOINT0_TILE && c <= CHECKPOINT9_TILE) {
+                int checkpoint = c - CHECKPOINT0_TILE;
+                if (checkpoint > m->max_checkpoint) {
+                    m->max_checkpoint = checkpoint;
+                }
+            }
         }
         c = fgetc(f);
         assert(c == '\n');

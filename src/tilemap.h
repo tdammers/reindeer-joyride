@@ -8,10 +8,13 @@ tilemap_t*
 create_tilemap(int w, int h);
 
 int
-get_tilemap_width(tilemap_t *tilemap);
+get_tilemap_width(const tilemap_t *tilemap);
 
 int
-get_tilemap_height(tilemap_t *tilemap);
+get_tilemap_height(const tilemap_t *tilemap);
+
+int
+get_tilemap_max_checkpoint(const tilemap_t *tilemap);
 
 void
 destroy_tilemap(tilemap_t *tilemap);

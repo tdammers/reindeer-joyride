@@ -26,6 +26,10 @@ typedef struct reindeer_t {
     int turn_control;
     int elevator_control;
 
+    // lap stats
+    int next_checkpoint;
+    int laps_finished;
+
     // stats
     double acceleration;
     double max_speed;

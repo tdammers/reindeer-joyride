@@ -110,9 +110,11 @@ update_reindeer(reindeer_t *reindeer, const tilemap_t *map, double dt)
         reindeer->x += dx;
         reindeer->y += dy;
     }
+    // recalculate current tile, we'll need this for checkpoints and altitude
+    // logic
+    t = tilemap_get(map, (int)floor(reindeer->x) >> 5, (int)floor(reindeer->y) >> 5);
 
     // update altitude
-    t = tilemap_get(map, (int)floor(reindeer->x) >> 5, (int)floor(reindeer->y) >> 5);
     ground_elev = 0.0; // tile_obstacle_height(t);
     reindeer->alt += reindeer->valt * dt;
     if (reindeer->alt < ground_elev) {
@@ -125,6 +127,20 @@ update_reindeer(reindeer_t *reindeer, const tilemap_t *map, double dt)
     if (reindeer->alt > 256.0) {
         reindeer->alt = 256.0;
         reindeer->valt = 0.0;
+    }
+
+    // handle checkpoint logic
+    if (reindeer->next_checkpoint >= 0 &&
+            t == CHECKPOINT0_TILE + reindeer->next_checkpoint) {
+        reindeer->next_checkpoint++;
+        if (reindeer->next_checkpoint > get_tilemap_max_checkpoint(map)) {
+            reindeer->next_checkpoint = -1;
+        }
+    }
+    else if (reindeer->next_checkpoint == -1 &&
+                t == START_FINISH_TILE) {
+        reindeer->laps_finished++;
+        reindeer->next_checkpoint = 0;
     }
 
     // update head bobbing animation
