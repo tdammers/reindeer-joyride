@@ -3,6 +3,10 @@
 typedef unsigned short tile_t;
 
 #define EMPTY_TILE '.'
+#define ARROW_N_TILE '^'
+#define ARROW_S_TILE 'v'
+#define ARROW_W_TILE '<'
+#define ARROW_E_TILE '>'
 #define WATER_TILE '~'
 #define TREE_TILE 'T'
 #define HOUSE_TILE 'H'

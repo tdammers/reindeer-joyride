@@ -163,6 +163,14 @@ ALLEGRO_BITMAP* ground_tile_image_for(tile_t t, const images_t* images)
         case TREE_TILE:
         case HOUSE_TILE:
             return get_image(images, IMG_ASSET_TILE_SNOW);
+        case ARROW_N_TILE:
+            return get_image(images, IMG_ASSET_TILE_SNOW_N);
+        case ARROW_S_TILE:
+            return get_image(images, IMG_ASSET_TILE_SNOW_S);
+        case ARROW_W_TILE:
+            return get_image(images, IMG_ASSET_TILE_SNOW_W);
+        case ARROW_E_TILE:
+            return get_image(images, IMG_ASSET_TILE_SNOW_E);
         case WATER_TILE:
             return get_image(images, IMG_ASSET_TILE_WATER);
         case START_FINISH_TILE:
