@@ -246,7 +246,10 @@ void game_draw_mode7(const game_state_t* state, const render_context_t* g)
     view.cam_x = state->reindeer.x;
     view.cam_y = state->reindeer.y;
     view.cam_angle = state->reindeer.angle;
-    view.cam_alt = state->reindeer.alt + 16;
+    view.cam_alt =
+        state->reindeer.alt +
+        cos(state->reindeer.bob_phase) * state->reindeer.bob_strength * 2.0 +
+        16.0;
     view.screen_w = screen_w;
     view.screen_h = screen_h;
     view.screen_dist = screen_h * 2;
