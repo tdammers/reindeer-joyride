@@ -266,7 +266,7 @@ void game_draw_mode7(const game_state_t* state, const render_context_t* g)
 
     al_lock_bitmap(g->target, ALLEGRO_PIXEL_FORMAT_ANY, ALLEGRO_LOCK_READWRITE);
 
-    for (y = view.horizon_screen_y; y < screen_h; ++y) {
+    for (y = view.horizon_screen_y + 1; y < screen_h; ++y) {
         for (x = 0; x < screen_w; ++x) {
             mode7_project(&view, &fground_x, &fground_y, x, y);
             ground_x = (int)floor(fground_x);
