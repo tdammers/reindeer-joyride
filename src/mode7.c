@@ -22,8 +22,8 @@ mode7_project(
 )
 {
     // Make screen coordinates relative to (center_x, horizon_y)
-    double rel_screen_x = (double)screen_x - (0.5 * (double)view->screen_w);
-    double rel_screen_y = (double)screen_y - (double)view->horizon_screen_y;
+    double rel_screen_x = (double)screen_x + 0.5 - (0.5 * (double)view->screen_w);
+    double rel_screen_y = (double)screen_y + 0.5 - (double)view->horizon_screen_y;
 
     // Only draw on the ground
     if (rel_screen_y < 1) return 0;
