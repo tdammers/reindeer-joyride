@@ -16,6 +16,7 @@ typedef struct game_state_t {
     int steering_keys;
     int elevator_keys;
     int view_mode;
+    double checkpoint_anim_phase;
 } game_state_t;
 
 #define VIEW_MODE_TOP_DOWN 0
@@ -50,6 +51,11 @@ void game_tick(struct app_t* app, double dt)
 {
     game_state_t* state = app->state;
     update_reindeer(&(state->reindeer), state->map, dt);
+
+    state->checkpoint_anim_phase += dt;
+    if (state->checkpoint_anim_phase >= 1.0) {
+        state->checkpoint_anim_phase = -1.0;
+    }
 }
 
 static void
@@ -171,6 +177,7 @@ ALLEGRO_BITMAP* billboard_tile_image_for(tile_t t, const images_t* images)
     switch (t) {
         case TREE_TILE: return get_image(images, IMG_ASSET_SPRITE_TREE);
         case HOUSE_TILE: return get_image(images, IMG_ASSET_SPRITE_HOUSE1);
+        case START_FINISH_TILE: return get_image(images, IMG_ASSET_TILE_START_FINISH);
         default: return NULL;
     }
 }
@@ -200,9 +207,19 @@ draw_mode7_billboard_sprite(
     double sprite_x, sprite_y, sprite_size;
     tile_t t;
     ALLEGRO_BITMAP* billboard_bmp;
+    double elev = 0.0;
 
     t = tilemap_get(state->map, tx, ty);
     billboard_bmp = billboard_tile_image_for(t, g->images);
+    if (t == START_FINISH_TILE) {
+        elev = 48.0;
+    }
+    else if (state->reindeer.next_checkpoint >= 0 &&
+             t == CHECKPOINT0_TILE + state->reindeer.next_checkpoint) {
+        elev = 48.0 - 16.0 * pow(state->checkpoint_anim_phase, 2.0);
+        billboard_bmp = get_image(g->images, IMG_ASSET_SPRITE_WAYPOINT_ARROW);
+    }
+
     if (billboard_bmp) {
         if (!mode7_unproject(view,
                 &sprite_x, &sprite_y, &sprite_size,
@@ -218,7 +235,7 @@ draw_mode7_billboard_sprite(
             0.0, 0.0,
             sw, sh,
             sprite_x - dw * 0.5,
-            sprite_y - dh,
+            sprite_y - dh - elev * sprite_size,
             dw, dh,
             0);
     }

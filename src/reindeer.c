@@ -130,17 +130,19 @@ update_reindeer(reindeer_t *reindeer, const tilemap_t *map, double dt)
     }
 
     // handle checkpoint logic
-    if (reindeer->next_checkpoint >= 0 &&
-            t == CHECKPOINT0_TILE + reindeer->next_checkpoint) {
-        reindeer->next_checkpoint++;
-        if (reindeer->next_checkpoint > get_tilemap_max_checkpoint(map)) {
-            reindeer->next_checkpoint = -1;
+    if (reindeer->alt <= 32) {
+        if (reindeer->next_checkpoint >= 0 &&
+                t == CHECKPOINT0_TILE + reindeer->next_checkpoint) {
+            reindeer->next_checkpoint++;
+            if (reindeer->next_checkpoint > get_tilemap_max_checkpoint(map)) {
+                reindeer->next_checkpoint = -1;
+            }
         }
-    }
-    else if (reindeer->next_checkpoint == -1 &&
-                t == START_FINISH_TILE) {
-        reindeer->laps_finished++;
-        reindeer->next_checkpoint = 0;
+        else if (reindeer->next_checkpoint == -1 &&
+                    t == START_FINISH_TILE) {
+            reindeer->laps_finished++;
+            reindeer->next_checkpoint = 0;
+        }
     }
 
     // update head bobbing animation
