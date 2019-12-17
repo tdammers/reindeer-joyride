@@ -217,7 +217,12 @@ draw_mode7_billboard_sprite(
     else if (state->reindeer.next_checkpoint >= 0 &&
              t == CHECKPOINT0_TILE + state->reindeer.next_checkpoint) {
         elev = 48.0 - 16.0 * pow(state->checkpoint_anim_phase, 2.0);
-        billboard_bmp = get_image(g->images, IMG_ASSET_SPRITE_WAYPOINT_ARROW);
+        billboard_bmp = get_image(
+            g->images,
+            (state->reindeer.alt <= 32.0)
+                ? IMG_ASSET_SPRITE_WAYPOINT_ARROW_GREEN
+                : IMG_ASSET_SPRITE_WAYPOINT_ARROW_RED
+            );
     }
 
     if (billboard_bmp) {
