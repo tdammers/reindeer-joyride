@@ -9,6 +9,8 @@ struct tilemap_t {
     int h;
     tile_t *data;
     int max_checkpoint;
+    int start_x;
+    int start_y;
 };
 
 tilemap_t*
@@ -53,6 +55,21 @@ get_tilemap_height(const tilemap_t *tilemap)
     return tilemap->h;
 }
 
+
+int
+get_tilemap_start_x(const tilemap_t* tilemap)
+{
+    if (!tilemap) return 0;
+    return tilemap->start_x;
+}
+
+int
+get_tilemap_start_y(const tilemap_t* tilemap)
+{
+    if (!tilemap) return 0;
+    return tilemap->start_y;
+}
+
 int
 get_tilemap_max_checkpoint(const tilemap_t *tilemap)
 {
@@ -90,6 +107,10 @@ load_tilemap(const char* filename)
                 if (checkpoint > m->max_checkpoint) {
                     m->max_checkpoint = checkpoint;
                 }
+            }
+            if (c == START_FINISH_TILE) {
+                m->start_x = x;
+                m->start_y = y;
             }
         }
         c = fgetc(f);
