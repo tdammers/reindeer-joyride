@@ -18,7 +18,7 @@ init_reindeer(reindeer_t *reindeer)
 }
 
 void
-update_reindeer(reindeer_t *reindeer, double dt)
+update_reindeer(reindeer_t *reindeer, const tilemap_t *map, double dt)
 {
     // process accel/brake controls
     if (reindeer->accel_control) {
@@ -28,16 +28,32 @@ update_reindeer(reindeer_t *reindeer, double dt)
         }
     }
     else {
-        reindeer->v -= reindeer->rolling_friction * dt;
-        if (reindeer->v < 0.0) {
-            reindeer->v = 0.0;
+        if (reindeer->v > 0.0) {
+            reindeer->v -= reindeer->rolling_friction * dt;
+            if (reindeer->v < 0.0) {
+                reindeer->v = 0.0;
+            }
+        }
+        else {
+            reindeer->v += reindeer->rolling_friction * dt;
+            if (reindeer->v > 0.0) {
+                reindeer->v = 0.0;
+            }
         }
     }
 
     if (reindeer->brake_control) {
-        reindeer->v -= reindeer->acceleration * dt;
-        if (reindeer->v < 0.0) {
-            reindeer->v = 0.0;
+        if (reindeer->v > 0.0) {
+            reindeer->v -= reindeer->acceleration * dt;
+            if (reindeer->v < 0.0) {
+                reindeer->v = 0.0;
+            }
+        }
+        else {
+            reindeer->v += reindeer->acceleration * dt;
+            if (reindeer->v > 0.0) {
+                reindeer->v = 0.0;
+            }
         }
     }
 
@@ -75,12 +91,36 @@ update_reindeer(reindeer_t *reindeer, double dt)
     reindeer->angle += reindeer->vangle * dt;
     double sa = sin(reindeer->angle);
     double ca = cos(reindeer->angle);
-    reindeer->x += reindeer->v * dt * sa;
-    reindeer->y -= reindeer->v * dt * ca;
+    double dx = reindeer->v * dt * sa;
+    double dy = -reindeer->v * dt * ca;
+
+    // lateral collision detection
+    tile_t t = tilemap_get(map, (int)floor(reindeer->x + dx) >> 5, (int)floor(reindeer->y + dy) >> 5);
+    double ground_elev = tile_obstacle_height(t);
+    if (((((int)floor(reindeer->x + dx) >> 5) != (int)floor(reindeer->x) >> 5) ||
+        (((int)floor(reindeer->y + dy) >> 5) != (int)floor(reindeer->y) >> 5))
+        &&
+        (ground_elev > reindeer->alt + 0.1)) {
+        // collision, oh no!
+        reindeer->v = -reindeer->v * 0.5;
+        reindeer->x -= dx;
+        reindeer->y -= dy;
+    }
+    else {
+        reindeer->x += dx;
+        reindeer->y += dy;
+    }
+
+    // update altitude
+    t = tilemap_get(map, (int)floor(reindeer->x) >> 5, (int)floor(reindeer->y) >> 5);
+    ground_elev = 0.0; // tile_obstacle_height(t);
     reindeer->alt += reindeer->valt * dt;
-    if (reindeer->alt < 0.0) {
-        reindeer->alt = 0.0;
+    if (reindeer->alt < ground_elev) {
+        reindeer->alt = ground_elev;
         reindeer->valt = 0.0;
+        if (ground_elev > 0.0) {
+            reindeer->v = 0.0;
+        }
     }
     if (reindeer->alt > 256.0) {
         reindeer->alt = 256.0;

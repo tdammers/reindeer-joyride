@@ -1,5 +1,7 @@
 #pragma once
 
+#include "tilemap.h"
+
 typedef struct reindeer_t {
     // physics state
     double x;
@@ -39,4 +41,4 @@ void
 init_reindeer(reindeer_t *reindeer);
 
 void
-update_reindeer(reindeer_t *reindeer, double dt);
+update_reindeer(reindeer_t *reindeer, const tilemap_t* map, double dt);

@@ -47,7 +47,7 @@ void game_destroy(app_t* app)
 void game_tick(struct app_t* app, double dt)
 {
     game_state_t* state = app->state;
-    update_reindeer(&(state->reindeer), dt);
+    update_reindeer(&(state->reindeer), state->map, dt);
 }
 
 static void
@@ -208,8 +208,8 @@ draw_mode7_billboard_sprite(
         }
         double sw = (double)al_get_bitmap_width(billboard_bmp);
         double sh = (double)al_get_bitmap_height(billboard_bmp);
-        double dw = sprite_size * sw * 0.5;
-        double dh = sprite_size * sh * 0.5;
+        double dw = sprite_size * sw;
+        double dh = sprite_size * sh;
         al_draw_scaled_bitmap(
             billboard_bmp,
             0.0, 0.0,
