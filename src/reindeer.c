@@ -20,6 +20,17 @@ init_reindeer(reindeer_t *reindeer)
 void
 update_reindeer(reindeer_t *reindeer, const tilemap_t *map, double dt)
 {
+    tile_t t;
+    double ground_elev;
+    int in_water;
+    int airborne;
+
+    // calculate friction coefficient
+    t = tilemap_get(map, (int)floor(reindeer->x) >> 5, (int)floor(reindeer->y) >> 5);
+    ground_elev = tile_obstacle_height(t);
+    airborne = reindeer->alt > ground_elev + 4;
+    in_water = (t == WATER_TILE) && !airborne;
+
     // process accel/brake controls
     if (reindeer->accel_control) {
         reindeer->v += reindeer->acceleration * dt;
@@ -27,18 +38,24 @@ update_reindeer(reindeer_t *reindeer, const tilemap_t *map, double dt)
             reindeer->v = reindeer->max_speed;
         }
     }
-    else {
-        if (reindeer->v > 0.0) {
-            reindeer->v -= reindeer->rolling_friction * dt;
-            if (reindeer->v < 0.0) {
-                reindeer->v = 0.0;
-            }
+
+    double friction = reindeer->rolling_friction;
+    if (airborne) {
+        friction = fabs(reindeer->v) * 0.1;
+    }
+    else if (in_water) {
+        friction = fabs(reindeer->v) * 5.0;
+    }
+    if (reindeer->v > 0.0) {
+        reindeer->v -= friction * dt;
+        if (reindeer->v < 0.0) {
+            reindeer->v = 0.0;
         }
-        else {
-            reindeer->v += reindeer->rolling_friction * dt;
-            if (reindeer->v > 0.0) {
-                reindeer->v = 0.0;
-            }
+    }
+    else {
+        reindeer->v += friction * dt;
+        if (reindeer->v > 0.0) {
+            reindeer->v = 0.0;
         }
     }
 
@@ -95,8 +112,8 @@ update_reindeer(reindeer_t *reindeer, const tilemap_t *map, double dt)
     double dy = -reindeer->v * dt * ca;
 
     // lateral collision detection
-    tile_t t = tilemap_get(map, (int)floor(reindeer->x + dx) >> 5, (int)floor(reindeer->y + dy) >> 5);
-    double ground_elev = tile_obstacle_height(t);
+    t = tilemap_get(map, (int)floor(reindeer->x + dx) >> 5, (int)floor(reindeer->y + dy) >> 5);
+    ground_elev = tile_obstacle_height(t);
     if (((((int)floor(reindeer->x + dx) >> 5) != (int)floor(reindeer->x) >> 5) ||
         (((int)floor(reindeer->y + dy) >> 5) != (int)floor(reindeer->y) >> 5))
         &&
