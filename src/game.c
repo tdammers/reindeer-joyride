@@ -17,6 +17,8 @@ typedef struct game_state_t {
     int elevator_keys;
     int view_mode;
     double checkpoint_anim_phase;
+    bool paused;
+    bool finished;
 } game_state_t;
 
 #define VIEW_MODE_TOP_DOWN 0
@@ -30,6 +32,7 @@ create_game_state(const char* map_filename)
     init_reindeer(&(state->reindeer));
     state->reindeer.x = (get_tilemap_start_x(state->map) * 32.0) + 16;
     state->reindeer.y = ((get_tilemap_start_y(state->map) + 1) * 32.0) + 16;
+    state->view_mode = 1;
 
     return state;
 }
@@ -50,11 +53,16 @@ void game_destroy(app_t* app)
 void game_tick(struct app_t* app, double dt)
 {
     game_state_t* state = app->state;
-    update_reindeer(&(state->reindeer), state->map, dt);
 
-    state->checkpoint_anim_phase += dt;
-    if (state->checkpoint_anim_phase >= 1.0) {
-        state->checkpoint_anim_phase = -1.0;
+    if (state->paused) {
+        // TODO: pause mode animations
+    }
+    else {
+        update_reindeer(&(state->reindeer), state->map, dt);
+        state->checkpoint_anim_phase += dt;
+        if (state->checkpoint_anim_phase >= 1.0) {
+            state->checkpoint_anim_phase = -1.0;
+        }
     }
 }
 
@@ -93,66 +101,87 @@ update_elevator(game_state_t* state)
 void game_event(struct app_t* app, const ALLEGRO_EVENT* ev)
 {
     game_state_t* state = app->state;
-    switch (ev->type) {
-        case ALLEGRO_EVENT_KEY_CHAR:
-            switch (ev->keyboard.keycode) {
-                case ALLEGRO_KEY_V:
-                    state->view_mode ^= 1;
-                    break;
-            }
-            break;
-        case ALLEGRO_EVENT_KEY_DOWN:
-            switch (ev->keyboard.keycode) {
-                case ALLEGRO_KEY_LEFT:
-                    state->steering_keys |= 1;
-                    update_steering(state);
-                    break;
-                case ALLEGRO_KEY_RIGHT:
-                    state->steering_keys |= 2;
-                    update_steering(state);
-                    break;
-                case ALLEGRO_KEY_UP:
-                    state->elevator_keys |= 1;
-                    update_elevator(state);
-                    break;
-                case ALLEGRO_KEY_DOWN:
-                    state->elevator_keys |= 2;
-                    update_elevator(state);
-                    break;
-                case ALLEGRO_KEY_LSHIFT:
-                    state->reindeer.accel_control = 1;
-                    break;
-                case ALLEGRO_KEY_LCTRL:
-                    state->reindeer.brake_control = 1;
-                    break;
-            }
-            break;
-        case ALLEGRO_EVENT_KEY_UP:
-            switch (ev->keyboard.keycode) {
-                case ALLEGRO_KEY_LEFT:
-                    state->steering_keys &= ~1;
-                    update_steering(state);
-                    break;
-                case ALLEGRO_KEY_RIGHT:
-                    state->steering_keys &= ~2;
-                    update_steering(state);
-                    break;
-                case ALLEGRO_KEY_UP:
-                    state->elevator_keys &= ~1;
-                    update_elevator(state);
-                    break;
-                case ALLEGRO_KEY_DOWN:
-                    state->elevator_keys &= ~2;
-                    update_elevator(state);
-                    break;
-                case ALLEGRO_KEY_LSHIFT:
-                    state->reindeer.accel_control = 0;
-                    break;
-                case ALLEGRO_KEY_LCTRL:
-                    state->reindeer.brake_control = 0;
-                    break;
-            }
-            break;
+    if (state->paused) {
+        switch (ev->type) {
+            case ALLEGRO_EVENT_KEY_CHAR:
+                switch (ev->keyboard.keycode) {
+                    case ALLEGRO_KEY_P:
+                    case ALLEGRO_KEY_ESCAPE:
+                        state->paused = false;
+                        break;
+                    case ALLEGRO_KEY_Q:
+                        state->finished = true;
+                        break;
+                }
+                break;
+        }
+    }
+    else {
+        switch (ev->type) {
+            case ALLEGRO_EVENT_KEY_CHAR:
+                switch (ev->keyboard.keycode) {
+                    case ALLEGRO_KEY_P:
+                    case ALLEGRO_KEY_ESCAPE:
+                        state->paused = true;
+                        break;
+                    case ALLEGRO_KEY_V:
+                        state->view_mode ^= 1;
+                        break;
+                }
+                break;
+            case ALLEGRO_EVENT_KEY_DOWN:
+                switch (ev->keyboard.keycode) {
+                    case ALLEGRO_KEY_LEFT:
+                        state->steering_keys |= 1;
+                        update_steering(state);
+                        break;
+                    case ALLEGRO_KEY_RIGHT:
+                        state->steering_keys |= 2;
+                        update_steering(state);
+                        break;
+                    case ALLEGRO_KEY_UP:
+                        state->elevator_keys |= 1;
+                        update_elevator(state);
+                        break;
+                    case ALLEGRO_KEY_DOWN:
+                        state->elevator_keys |= 2;
+                        update_elevator(state);
+                        break;
+                    case ALLEGRO_KEY_LSHIFT:
+                        state->reindeer.accel_control = 1;
+                        break;
+                    case ALLEGRO_KEY_LCTRL:
+                        state->reindeer.brake_control = 1;
+                        break;
+                }
+                break;
+            case ALLEGRO_EVENT_KEY_UP:
+                switch (ev->keyboard.keycode) {
+                    case ALLEGRO_KEY_LEFT:
+                        state->steering_keys &= ~1;
+                        update_steering(state);
+                        break;
+                    case ALLEGRO_KEY_RIGHT:
+                        state->steering_keys &= ~2;
+                        update_steering(state);
+                        break;
+                    case ALLEGRO_KEY_UP:
+                        state->elevator_keys &= ~1;
+                        update_elevator(state);
+                        break;
+                    case ALLEGRO_KEY_DOWN:
+                        state->elevator_keys &= ~2;
+                        update_elevator(state);
+                        break;
+                    case ALLEGRO_KEY_LSHIFT:
+                        state->reindeer.accel_control = 0;
+                        break;
+                    case ALLEGRO_KEY_LCTRL:
+                        state->reindeer.brake_control = 0;
+                        break;
+                }
+                break;
+        }
     }
 }
 
@@ -448,54 +477,86 @@ draw_next_checkpoint_arrow(const game_state_t* state, const render_context_t* g)
         16, 16, sx, sy, angle, 0);
 }
 
+char*
+stopwatch_fmt(char* buf, size_t bufsize, double t)
+{
+    int m = (int)floor(t / 60.0);
+    double s = t - (double)m;
+    snprintf(buf, bufsize, "%02i:%06.3f", m, s);
+    return buf;
+}
+
 void
 draw_stats(const game_state_t* state, const render_context_t* g)
 {
-    char str[512];
+    int num_lines = 0;
+    char lines[512][32];
+
     int x = 2;
     int y = 2;
+    int mode = ALLEGRO_ALIGN_LEFT;
 
-    snprintf(str, 512,
-        "Lap %i, next checkpoint %i",
-        state->reindeer.laps_finished + 1,
-        state->reindeer.next_checkpoint);
-    al_draw_text(
-        g->font,
-        al_map_rgb(255, 128, 0),
-        x, y, 0,
-        str);
-    y += 10;
+    if (state->paused) {
+        al_draw_filled_rectangle(0, 0, 320, 240, al_map_rgba(0, 0, 0, 64));
+    }
 
-    snprintf(str, 512,
-        "SPD: %3.0f",
-        state->reindeer.v);
-    al_draw_text(
-        g->font,
-        al_map_rgb(255, 128, 0),
-        x, y, 0,
-        str);
-    y += 10;
+    if (state->paused) {
+        int i = 0;
 
-    snprintf(str, 512,
-        "PITCH: %+5.3f",
-        state->reindeer.pitch);
-    al_draw_text(
-        g->font,
-        al_map_rgb(255, 128, 0),
-        x, y, 0,
-        str);
-    y += 10;
+        snprintf(lines[i++], 512,
+            "PAUSED");
+        snprintf(lines[i++], 512,
+            "P - CONTINUE");
+        snprintf(lines[i++], 512,
+            "Q -   QUIT  ");
+        snprintf(lines[i++], 512,
+            "------------");
 
-    snprintf(str, 512,
-        "ALT: %3.0f (%+3.0f)",
-        state->reindeer.alt,
-        state->reindeer.valt);
-    al_draw_text(
-        g->font,
-        al_map_rgb(255, 128, 0),
-        x, y, 0,
-        str);
-    y += 10;
+        x = 160;
+        y = (240 - 10 * i) * 0.5;
+        mode = ALLEGRO_ALIGN_CENTRE;
+
+        num_lines = i;
+    }
+    else {
+        int i = 0;
+        char buf[256];
+
+        snprintf(lines[i++], 512,
+            "SPD %3.0f ALT %3.0f",
+            state->reindeer.v,
+            state->reindeer.alt);
+
+        snprintf(lines[i++], 512,
+            "Race: %s",
+            stopwatch_fmt(buf, 256, state->reindeer.race_time));
+        snprintf(lines[i++], 512,
+            "Lap %i: %s",
+            state->reindeer.laps_finished + 1,
+            stopwatch_fmt(buf, 256, state->reindeer.current_lap_time));
+        if (state->reindeer.best_lap >= 0) {
+            double best_time = state->reindeer.lap_times[state->reindeer.best_lap];
+            snprintf(lines[i++], 512,
+                "Best: %s",
+                stopwatch_fmt(buf, 256, best_time));
+        }
+
+        num_lines = i;
+    }
+
+    for (int i = 0; i < num_lines; ++i) {
+        al_draw_text(
+            g->font,
+            al_map_rgba(0, 0, 0, 200),
+            x+1, y+1, mode,
+            lines[i]);
+        al_draw_text(
+            g->font,
+            al_map_rgb(255, 128, 0),
+            x, y, mode,
+            lines[i]);
+        y += 10;
+    }
 }
 
 void
@@ -514,6 +575,13 @@ game_draw(const app_t* app, const render_context_t* g)
     draw_stats(state, g);
 }
 
+bool
+game_finished(const app_t* app)
+{
+    game_state_t* state = app->state;
+    return state->finished;
+}
+
 app_t*
 create_game(const char *map_filename)
 {
@@ -523,5 +591,6 @@ create_game(const char *map_filename)
     app->draw = game_draw;
     app->tick = game_tick;
     app->event = game_event;
+    app->finished = game_finished;
     return app;
 }

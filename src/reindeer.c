@@ -15,6 +15,7 @@ init_reindeer(reindeer_t *reindeer)
     reindeer->pitch_rate = 2.0;
     reindeer->climb_force = 100.0;
     reindeer->max_climb_rate = 100.0;
+    reindeer->best_lap = -1;
 }
 
 void
@@ -147,6 +148,8 @@ update_reindeer(reindeer_t *reindeer, const tilemap_t *map, double dt)
     }
 
     // handle checkpoint logic
+    reindeer->current_lap_time += dt;
+    reindeer->race_time += dt;
     if (reindeer->alt <= 32) {
         if (reindeer->next_checkpoint >= 0 &&
                 t == CHECKPOINT0_TILE + reindeer->next_checkpoint) {
@@ -157,6 +160,15 @@ update_reindeer(reindeer_t *reindeer, const tilemap_t *map, double dt)
         }
         else if (reindeer->next_checkpoint == -1 &&
                     t == START_FINISH_TILE) {
+            if (reindeer->laps_finished < 32) {
+                reindeer->lap_times[reindeer->laps_finished] =
+                    reindeer->current_lap_time;
+            }
+            if (reindeer->best_lap < 0 ||
+                reindeer->current_lap_time < reindeer->lap_times[reindeer->best_lap]) {
+                reindeer->best_lap = reindeer->laps_finished;
+            }
+            reindeer->current_lap_time = 0.0;
             reindeer->laps_finished++;
             reindeer->next_checkpoint = 0;
         }

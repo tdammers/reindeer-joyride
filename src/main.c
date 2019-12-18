@@ -65,7 +65,6 @@ main(int argc, char **argv)
 void
 run_app(app_t *app, int fullscreen)
 {
-    int running = 1;
     ALLEGRO_EVENT_QUEUE *event_queue = NULL;
     ALLEGRO_BITMAP *drawbuf = NULL;
     ALLEGRO_DISPLAY *display = NULL;
@@ -118,7 +117,7 @@ run_app(app_t *app, int fullscreen)
 
     t = tl = tprev = al_get_time();
 
-    while (running) {
+    while (!(app->finished(app))) {
         tprev = t;
         t = al_get_time();
         while (tl < t) {
@@ -169,15 +168,6 @@ run_app(app_t *app, int fullscreen)
         {
             ALLEGRO_EVENT ev;
             while (al_get_next_event(event_queue, &ev)) {
-                switch (ev.type) {
-                    case ALLEGRO_EVENT_KEY_CHAR:
-                        switch (ev.keyboard.keycode) {
-                            case ALLEGRO_KEY_Q:
-                                running = false;
-                                break;
-                        }
-                        break;
-                }
                 if (app->event) app->event(app, &ev);
             }
         }

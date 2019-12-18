@@ -16,6 +16,7 @@ typedef struct app_t {
     void (*draw)(const struct app_t*, const render_context_t*);
     void (*tick)(struct app_t*, double);
     void (*event)(struct app_t*, const ALLEGRO_EVENT*);
+    bool (*finished)(const struct app_t*);
     void *state;
 } app_t;
 

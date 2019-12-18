@@ -29,6 +29,10 @@ typedef struct reindeer_t {
     // lap stats
     int next_checkpoint;
     int laps_finished;
+    int best_lap;
+    double lap_times[32];
+    double race_time;
+    double current_lap_time;
 
     // stats
     double acceleration;
