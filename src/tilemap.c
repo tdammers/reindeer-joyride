@@ -3,6 +3,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <assert.h>
+#include "util.h"
 
 struct tilemap_t {
     int w;
@@ -38,8 +39,7 @@ tile_t
 tilemap_get(const tilemap_t* m, int x, int y)
 {
     if (!m) return EMPTY_TILE;
-    int ofs = x + y * m->w;
-    if (x < 0 || x >= m->w || y < 0 || y >= m->h) return EMPTY_TILE;
+    int ofs = mid(0, x, m->w-1) + mid(0, y, m->h-1) * m->w;
     return m->data[ofs];
 }
 
