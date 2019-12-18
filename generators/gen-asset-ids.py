@@ -20,6 +20,7 @@ with open("src/asset_ids.h", "w") as header:
                     capture_output=True)
 
                 asset_filenames = completed.stdout.split()
+                asset_filenames.sort()
 
                 for asset_filename in asset_filenames:
                     tile_name = \

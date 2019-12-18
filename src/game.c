@@ -191,6 +191,7 @@ ALLEGRO_BITMAP* ground_tile_image_for(tile_t t, const images_t* images)
         case EMPTY_TILE:
         case TREE_TILE:
         case HOUSE_TILE:
+        case CANDYSTICK_TILE:
             return get_image(images, IMG_ASSET_TILE_SNOW);
         case ARROW_N_TILE:
             return get_image(images, IMG_ASSET_TILE_SNOW_N);
@@ -214,6 +215,7 @@ ALLEGRO_BITMAP* billboard_tile_image_for(tile_t t, const images_t* images)
     switch (t) {
         case TREE_TILE: return get_image(images, IMG_ASSET_SPRITE_TREE);
         case HOUSE_TILE: return get_image(images, IMG_ASSET_SPRITE_HOUSE1);
+        case CANDYSTICK_TILE: return get_image(images, IMG_ASSET_SPRITE_CANDYSTICK00);
         case START_FINISH_TILE: return get_image(images, IMG_ASSET_TILE_START_FINISH);
         default: return NULL;
     }

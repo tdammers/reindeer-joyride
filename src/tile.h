@@ -10,6 +10,7 @@ typedef unsigned short tile_t;
 #define WATER_TILE '~'
 #define TREE_TILE 'T'
 #define HOUSE_TILE 'H'
+#define CANDYSTICK_TILE 'J'
 #define CHECKPOINT0_TILE '0'
 #define CHECKPOINT1_TILE '1'
 #define CHECKPOINT2_TILE '2'
