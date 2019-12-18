@@ -483,7 +483,7 @@ char*
 stopwatch_fmt(char* buf, size_t bufsize, double t)
 {
     int m = (int)floor(t / 60.0);
-    double s = t - (double)m;
+    double s = t - (double)m * 60.0;
     snprintf(buf, bufsize, "%02i:%06.3f", m, s);
     return buf;
 }
