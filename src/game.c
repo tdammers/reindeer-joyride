@@ -28,6 +28,7 @@ game_state_t*
 create_game_state(const char* map_filename)
 {
     game_state_t *state = malloc(sizeof(game_state_t));
+    memset(state, 0, sizeof(game_state_t));
     state->map = load_tilemap(map_filename);
     init_reindeer(&(state->reindeer));
     state->reindeer.x = (get_tilemap_start_x(state->map) * 32.0) + 16;

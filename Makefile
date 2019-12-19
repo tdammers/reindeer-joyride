@@ -22,7 +22,7 @@ COMPILE_FLAGS = -Wall -Wextra -Werror -O2
 RCOMPILE_FLAGS = -D NDEBUG
 
 # Additional debug-specific flags
-DCOMPILE_FLAGS = -D DEBUG
+DCOMPILE_FLAGS = -D DEBUG -g -ggdb
 
 # Add additional include paths
 INCLUDES = $(SRC_PATH)
