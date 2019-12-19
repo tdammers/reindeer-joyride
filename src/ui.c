@@ -212,7 +212,7 @@ ui_draw(const app_t* app, const render_context_t* g)
     else {
         al_set_target_bitmap(g->target);
         double x = 160.0;
-        double y = (double)(240 - state->current_menu->num_items * 10) * 0.5;
+        double y = (double)(240 - state->current_menu->num_items * 16) * 0.5;
         al_draw_bitmap(
             get_image(g->images, state->current_menu->background_image_id),
             0, 0, 0);
@@ -231,7 +231,7 @@ ui_draw(const app_t* app, const render_context_t* g)
                 x, y, ALLEGRO_ALIGN_CENTER,
                 item->label);
 
-            y += 10;
+            y += 16;
         }
     }
 }

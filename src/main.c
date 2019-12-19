@@ -1,6 +1,7 @@
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_primitives.h>
 #include <allegro5/allegro_font.h>
+#include <allegro5/allegro_ttf.h>
 #include <allegro5/allegro_image.h>
 #include <stdio.h>
 #include <math.h>
@@ -89,6 +90,10 @@ run_app(app_t *app, int fullscreen)
         die("Initializing font addon failed");
     }
 
+    if (!al_init_ttf_addon()) {
+        die("Initializing ttf addon failed");
+    }
+
     if (!al_init_image_addon()) {
         die("Initializing image addon failed");
     }
@@ -107,7 +112,12 @@ run_app(app_t *app, int fullscreen)
         al_get_display_width(display),
         al_get_display_height(display));
 
-    default_font = al_create_builtin_font();
+    // default_font = al_create_builtin_font();
+    default_font =
+        al_load_font(
+            "data/fonts/UncialAntiqua-Regular.otf",
+            12,
+            ALLEGRO_TTF_MONOCHROME);
 
     event_queue = al_create_event_queue();
     al_register_event_source(event_queue, al_get_keyboard_event_source());

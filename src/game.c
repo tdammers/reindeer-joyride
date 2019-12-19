@@ -516,7 +516,7 @@ draw_stats(const game_state_t* state, const render_context_t* g)
             "------------");
 
         x = 160;
-        y = (240 - 10 * i) * 0.5;
+        y = (240 - 16 * i) * 0.5;
         mode = ALLEGRO_ALIGN_CENTRE;
 
         num_lines = i;
@@ -558,7 +558,7 @@ draw_stats(const game_state_t* state, const render_context_t* g)
             al_map_rgb(255, 128, 0),
             x, y, mode,
             lines[i]);
-        y += 10;
+        y += 16;
     }
 }
 
