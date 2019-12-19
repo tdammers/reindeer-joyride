@@ -3,6 +3,7 @@
 #include "asset_ids.h"
 #include "menu.h"
 #include "game.h"
+#include "util.h"
 
 #include <allegro5/allegro_primitives.h>
 #include <allegro5/allegro_font.h>
@@ -219,18 +220,12 @@ ui_draw(const app_t* app, const render_context_t* g)
         for (size_t i = 0; i < state->current_menu->num_items; ++i) {
             menu_item_t* item = state->current_menu->items[i];
             bool selected = i == state->current_menu->selected_item;
-            al_draw_text(
+            al_draw_outlined_text(
                 g->font,
+                selected ? al_map_rgb(255, 128, 0) : al_map_rgb(240, 240, 255),
                 al_map_rgba(0, 0, 0, 200),
-                x+1, y+1, ALLEGRO_ALIGN_CENTER,
-                item->label);
-                
-            al_draw_text(
-                g->font,
-                selected ? al_map_rgb(255, 128, 0) : al_map_rgb(255, 255, 255),
                 x, y, ALLEGRO_ALIGN_CENTER,
                 item->label);
-
             y += 16;
         }
     }

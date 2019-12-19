@@ -4,6 +4,7 @@
 #include "asset_ids.h"
 #include "mode7.h"
 #include "reindeer.h"
+#include "util.h"
 
 #include <allegro5/allegro_primitives.h>
 #include <allegro5/allegro_font.h>
@@ -548,14 +549,10 @@ draw_stats(const game_state_t* state, const render_context_t* g)
     }
 
     for (int i = 0; i < num_lines; ++i) {
-        al_draw_text(
-            g->font,
-            al_map_rgba(0, 0, 0, 200),
-            x+1, y+1, mode,
-            lines[i]);
-        al_draw_text(
+        al_draw_outlined_text(
             g->font,
             al_map_rgb(255, 128, 0),
+            al_map_rgba(0, 0, 0, 200),
             x, y, mode,
             lines[i]);
         y += 16;
