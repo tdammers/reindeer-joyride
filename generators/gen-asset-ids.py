@@ -51,5 +51,6 @@ with open("src/asset_ids.h", "w") as header:
             [
                 ("tiles", "TILE"),
                 ("sprites", "SPRITE"),
-                ("backgrounds", "BACKGROUND")
+                ("backgrounds", "BACKGROUND"),
+                ("ui", "UI")
             ])

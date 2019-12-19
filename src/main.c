@@ -7,6 +7,7 @@
 
 #include "app.h"
 #include "game.h"
+#include "ui.h"
 #include "img.h"
 
 void
@@ -57,9 +58,9 @@ main(int argc, char **argv)
     options_t options;
     init_options(&options);
     parse_options(&options, argc, argv);
-    app_t *game = create_game(options.track_filename);
-    run_app(game, options.fullscreen);
-    destroy_app(game);
+    app_t *app = create_ui(options.track_filename);
+    run_app(app, options.fullscreen);
+    destroy_app(app);
 }
 
 void
