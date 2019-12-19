@@ -112,12 +112,14 @@ run_app(app_t *app, int fullscreen)
         al_get_display_width(display),
         al_get_display_height(display));
 
-    // default_font = al_create_builtin_font();
     default_font =
         al_load_font(
             "data/fonts/UncialAntiqua-Regular.otf",
-            12,
+            13,
             ALLEGRO_TTF_MONOCHROME);
+    if (!default_font) {
+        default_font = al_create_builtin_font();
+    }
 
     event_queue = al_create_event_queue();
     al_register_event_source(event_queue, al_get_keyboard_event_source());
