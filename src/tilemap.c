@@ -20,11 +20,12 @@ tilemap_t*
 create_tilemap(int w, int h)
 {
     tilemap_t *tilemap = malloc(sizeof(tilemap_t));
+    memset(tilemap, 0, sizeof(tilemap_t));
     tilemap->w = w;
     tilemap->h = h;
     tilemap->data = malloc(sizeof(tile_t) * w * h);
-    tilemap->max_checkpoint = -1;
     memset(tilemap->data, 0, sizeof(tile_t) * w * h);
+    tilemap->max_checkpoint = -1;
     return tilemap;
 }
 
