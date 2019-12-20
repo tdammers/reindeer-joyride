@@ -4,6 +4,9 @@
 
 typedef struct tilemap_t tilemap_t;
 
+int
+hash_tilemap_coords(int x, int y);
+
 tilemap_t*
 create_tilemap(int w, int h);
 

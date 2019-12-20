@@ -218,13 +218,17 @@ ALLEGRO_BITMAP* ground_tile_image_for(tile_t t, const images_t* images)
     }
 }
 
-ALLEGRO_BITMAP* billboard_tile_image_for(tile_t t, const images_t* images)
+ALLEGRO_BITMAP* billboard_tile_image_for(tile_t t, const images_t* images, int variation)
 {
     switch (t) {
-        case TREE_TILE: return get_image(images, IMG_ASSET_SPRITE_TREE);
-        case HOUSE_TILE: return get_image(images, IMG_ASSET_SPRITE_HOUSE1);
-        case CANDYSTICK_TILE: return get_image(images, IMG_ASSET_SPRITE_CANDYSTICK00);
-        case START_FINISH_TILE: return get_image(images, IMG_ASSET_TILE_START_FINISH);
+        case TREE_TILE:
+            return get_image(images, IMG_ASSET_SPRITE_TREE);
+        case HOUSE_TILE:
+            return get_image(images, IMG_ASSET_SPRITE_HOUSE1);
+        case CANDYSTICK_TILE:
+            return get_image(images, IMG_ASSET_SPRITE_CANDYSTICK00 + (variation & 3));
+        case START_FINISH_TILE:
+            return get_image(images, IMG_ASSET_TILE_START_FINISH);
         default: return NULL;
     }
 }
@@ -255,9 +259,10 @@ draw_mode7_billboard_sprite(
     tile_t t;
     ALLEGRO_BITMAP* billboard_bmp;
     double elev = 0.0;
+    int variation = hash_tilemap_coords(tx, ty);
 
     t = tilemap_get(state->map, tx, ty);
-    billboard_bmp = billboard_tile_image_for(t, g->images);
+    billboard_bmp = billboard_tile_image_for(t, g->images, variation);
     if (t == START_FINISH_TILE) {
         elev = 48.0;
     }

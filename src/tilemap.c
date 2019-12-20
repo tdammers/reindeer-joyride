@@ -16,6 +16,24 @@ struct tilemap_t {
     double checkpoint_y[10];
 };
 
+int
+hash_tilemap_coords(int x, int y)
+{
+    int32_t coords[2] = { x, y };
+    char* bytes = (char*)coords;
+    static const int p = 31;
+    static const int m = 1e9 + 9;
+    int ppow = 1;
+    int hash = 0;
+    for (size_t i = 0; i < 2 * sizeof(int32_t); ++i) {
+        hash += bytes[i] * ppow;
+        hash %= m;
+        ppow *= p;
+        ppow %= m;
+    }
+    return hash;
+}
+
 tilemap_t*
 create_tilemap(int w, int h)
 {
