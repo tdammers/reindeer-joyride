@@ -131,59 +131,65 @@ void game_event(struct app_t* app, const ALLEGRO_EVENT* ev)
                         break;
                 }
                 break;
-            case ALLEGRO_EVENT_KEY_DOWN:
-                switch (ev->keyboard.keycode) {
-                    case ALLEGRO_KEY_LEFT:
-                        state->steering_keys |= 1;
-                        update_steering(state);
-                        break;
-                    case ALLEGRO_KEY_RIGHT:
-                        state->steering_keys |= 2;
-                        update_steering(state);
-                        break;
-                    case ALLEGRO_KEY_UP:
-                        state->elevator_keys |= 1;
-                        update_elevator(state);
-                        break;
-                    case ALLEGRO_KEY_DOWN:
-                        state->elevator_keys |= 2;
-                        update_elevator(state);
-                        break;
-                    case ALLEGRO_KEY_LSHIFT:
-                        state->reindeer.accel_control = 1;
-                        break;
-                    case ALLEGRO_KEY_LCTRL:
-                        state->reindeer.brake_control = 1;
-                        break;
-                }
-                break;
-            case ALLEGRO_EVENT_KEY_UP:
-                switch (ev->keyboard.keycode) {
-                    case ALLEGRO_KEY_LEFT:
-                        state->steering_keys &= ~1;
-                        update_steering(state);
-                        break;
-                    case ALLEGRO_KEY_RIGHT:
-                        state->steering_keys &= ~2;
-                        update_steering(state);
-                        break;
-                    case ALLEGRO_KEY_UP:
-                        state->elevator_keys &= ~1;
-                        update_elevator(state);
-                        break;
-                    case ALLEGRO_KEY_DOWN:
-                        state->elevator_keys &= ~2;
-                        update_elevator(state);
-                        break;
-                    case ALLEGRO_KEY_LSHIFT:
-                        state->reindeer.accel_control = 0;
-                        break;
-                    case ALLEGRO_KEY_LCTRL:
-                        state->reindeer.brake_control = 0;
-                        break;
-                }
-                break;
         }
+    }
+
+    // control inputs; because we're essentially capturing deltas here and
+    // use them to reconstruct key states, we need to keep doing this both
+    // when paused and unpaused.
+    switch (ev->type) {
+        case ALLEGRO_EVENT_KEY_DOWN:
+            switch (ev->keyboard.keycode) {
+                case ALLEGRO_KEY_LEFT:
+                    state->steering_keys |= 1;
+                    update_steering(state);
+                    break;
+                case ALLEGRO_KEY_RIGHT:
+                    state->steering_keys |= 2;
+                    update_steering(state);
+                    break;
+                case ALLEGRO_KEY_UP:
+                    state->elevator_keys |= 1;
+                    update_elevator(state);
+                    break;
+                case ALLEGRO_KEY_DOWN:
+                    state->elevator_keys |= 2;
+                    update_elevator(state);
+                    break;
+                case ALLEGRO_KEY_LSHIFT:
+                    state->reindeer.accel_control = 1;
+                    break;
+                case ALLEGRO_KEY_LCTRL:
+                    state->reindeer.brake_control = 1;
+                    break;
+            }
+            break;
+        case ALLEGRO_EVENT_KEY_UP:
+            switch (ev->keyboard.keycode) {
+                case ALLEGRO_KEY_LEFT:
+                    state->steering_keys &= ~1;
+                    update_steering(state);
+                    break;
+                case ALLEGRO_KEY_RIGHT:
+                    state->steering_keys &= ~2;
+                    update_steering(state);
+                    break;
+                case ALLEGRO_KEY_UP:
+                    state->elevator_keys &= ~1;
+                    update_elevator(state);
+                    break;
+                case ALLEGRO_KEY_DOWN:
+                    state->elevator_keys &= ~2;
+                    update_elevator(state);
+                    break;
+                case ALLEGRO_KEY_LSHIFT:
+                    state->reindeer.accel_control = 0;
+                    break;
+                case ALLEGRO_KEY_LCTRL:
+                    state->reindeer.brake_control = 0;
+                    break;
+            }
+            break;
     }
 }
 
