@@ -34,8 +34,15 @@ make_submenu_menu_item(const char* label, menu_t* menu)
 menu_item_t*
 make_action_menu_item(const char* label, int action)
 {
+    return make_action_menu_item_ex(label, action, NULL);
+}
+
+menu_item_t*
+make_action_menu_item_ex(const char* label, int action, void* param)
+{
     menu_action_t* action_data = malloc(sizeof(menu_action_t));
     action_data->action = action;
+    action_data->param = param;
 
     menu_item_t* item = make_menu_item(label);
     item->type = MENU_ITEM_TYPE_ACTION;
@@ -44,11 +51,22 @@ make_action_menu_item(const char* label, int action)
 }
 
 void
+destroy_action(menu_action_t* action)
+{
+    if (!action) return;
+    free(action->param);
+    free(action);
+}
+
+void
 destroy_menu_item(menu_item_t* item)
 {
     switch (item->type) {
         case MENU_ITEM_TYPE_MENU:
             destroy_menu(item->data);
+            break;
+        case MENU_ITEM_TYPE_ACTION:
+            destroy_action(item->data);
             break;
         default:
             free(item->data);

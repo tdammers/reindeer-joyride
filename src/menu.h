@@ -22,6 +22,7 @@ typedef struct menu_t {
 
 typedef struct menu_action_t {
     int action;
+    void* param;
 } menu_action_t;
 
 menu_item_t*
@@ -32,6 +33,9 @@ make_submenu_menu_item(const char*, menu_t*);
 
 menu_item_t*
 make_action_menu_item(const char*, int);
+
+menu_item_t*
+make_action_menu_item_ex(const char*, int, void*);
 
 void
 destroy_menu_item(menu_item_t*);

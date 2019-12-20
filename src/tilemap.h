@@ -4,6 +4,12 @@
 
 typedef struct tilemap_t tilemap_t;
 
+typedef struct tilemap_meta_t {
+    char* name;
+    char* description;
+} tilemap_meta_t;
+
+
 int
 hash_tilemap_coords(int x, int y);
 
@@ -27,6 +33,12 @@ tilemap_get(const tilemap_t*, int, int);
 
 void
 tilemap_set(tilemap_t*, int, int, tile_t);
+
+tilemap_meta_t*
+load_tilemap_meta(const char* filename);
+
+void
+destroy_tilemap_meta(tilemap_meta_t*);
 
 tilemap_t*
 load_tilemap(const char* filename);

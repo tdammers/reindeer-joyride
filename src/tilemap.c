@@ -5,6 +5,14 @@
 #include <assert.h>
 #include "util.h"
 
+void
+destroy_tilemap_meta(tilemap_meta_t* m)
+{
+    free(m->name);
+    free(m->description);
+    free(m);
+}
+
 struct tilemap_t {
     int w;
     int h;
@@ -125,6 +133,43 @@ tilemap_set(tilemap_t* m, int x, int y, tile_t t)
     m->data[ofs] = t;
 }
 
+tilemap_meta_t*
+load_tilemap_meta_f(FILE* f)
+{
+    char buf[1024];
+    size_t cur_len = 0;
+    size_t total_len = 0;
+
+    tilemap_meta_t* m = malloc(sizeof(tilemap_meta_t));
+    memset(m, 0, sizeof(tilemap_meta_t));
+    if (!fgets(buf, 1024, f)) return m;
+    m->name = strdup(buf);
+
+    do {
+        if (feof(f)) break;
+        if (!fgets(buf, 1024, f)) break;
+        if (strcmp(buf, "-----\n") == 0) break;
+        cur_len = strlen(buf);
+        m->description = realloc(m->description, total_len + cur_len + 1);
+        memcpy(m->description + total_len, buf, cur_len + 1);
+        total_len += cur_len;
+    } while (1);
+
+    return m;
+}
+
+tilemap_meta_t*
+load_tilemap_meta(const char* filename)
+{
+    FILE *f = fopen(filename, "r");
+    if (!f) {
+        return NULL;
+    }
+    tilemap_meta_t* m = load_tilemap_meta_f(f);
+    fclose(f);
+    return m;
+}
+
 tilemap_t*
 load_tilemap(const char* filename)
 {
@@ -137,6 +182,8 @@ load_tilemap(const char* filename)
     if (!f) {
         return NULL;
     }
+    // skip the "meta" portion
+    load_tilemap_meta_f(f);
     fscanf(f, "%i %i\n", &w, &h);
     m = create_tilemap(w, h);
     for (int y = 0; y < h; ++y) {

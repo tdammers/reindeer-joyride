@@ -4,6 +4,7 @@
 #include "menu.h"
 #include "game.h"
 #include "util.h"
+#include "tilemap.h"
 
 #include <allegro5/allegro_primitives.h>
 #include <allegro5/allegro_font.h>
@@ -13,6 +14,7 @@
 #define ACTION_QUIT 0
 #define ACTION_BACK 1
 #define ACTION_PLAY 2
+#define ACTION_TRACK_SELECT 3
 
 typedef struct ui_state_t {
     bool finished;
@@ -28,6 +30,37 @@ typedef struct ui_state_t {
     app_t* game;
 } ui_state_t;
 
+int
+list_tracks_callback(
+    ALLEGRO_FS_ENTRY* entry,
+    void* extra)
+{
+    menu_t* menu = extra;
+    const char* filename = strdup(al_get_fs_entry_name(entry)); 
+    printf("%s\n", filename);
+    tilemap_meta_t* meta = load_tilemap_meta(filename);
+    char* name = strdup(meta->name);
+    destroy_tilemap_meta(meta);
+    add_menu_item(menu,
+        make_action_menu_item_ex(
+            name,
+            ACTION_TRACK_SELECT,
+            (void*)filename));
+        
+    return ALLEGRO_FOR_EACH_FS_ENTRY_OK;
+}
+
+
+void
+list_tracks(menu_t* menu, const char* dirname)
+{
+    if (!dirname) {
+        dirname = "data/maps";
+    }
+    ALLEGRO_FS_ENTRY* dir = al_create_fs_entry(dirname);
+    al_for_each_fs_entry(dir, list_tracks_callback, menu);
+}
+
 ui_state_t*
 create_ui_state(const char* track_filename)
 {
@@ -38,6 +71,11 @@ create_ui_state(const char* track_filename)
     state->main_menu->background_image_id = IMG_ASSET_UI_TITLE_SCREEN;
     add_menu_item(state->main_menu,
         make_action_menu_item("PLAY", ACTION_PLAY));
+
+    menu_t* track_select_menu = make_menu();
+    list_tracks(track_select_menu, NULL);
+    add_menu_item(state->main_menu,
+        make_submenu_menu_item("TRACK", track_select_menu));
 
     menu_t* quit_menu = make_menu();
     add_menu_item(quit_menu,
@@ -151,16 +189,23 @@ void ui_activate_menu(ui_state_t* state)
             push_menu(state, item->data);
             break;
         case MENU_ITEM_TYPE_ACTION:
-            switch (((menu_action_t*)item->data)->action) {
-                case ACTION_QUIT:
-                    state->finished = true;
-                    break;
-                case ACTION_BACK:
-                    pop_menu(state);
-                    break;
-                case ACTION_PLAY:
-                    state->game = create_game(state->track_filename);
-                    break;
+            {
+                menu_action_t* action = item->data;
+                switch (action->action) {
+                    case ACTION_QUIT:
+                        state->finished = true;
+                        break;
+                    case ACTION_BACK:
+                        pop_menu(state);
+                        break;
+                    case ACTION_TRACK_SELECT:
+                        state->track_filename = (char*)action->param;
+                        pop_menu(state);
+                        break;
+                    case ACTION_PLAY:
+                        state->game = create_game(state->track_filename);
+                        break;
+                }
             }
             break;
     }
@@ -184,10 +229,10 @@ void ui_event(struct app_t* app, const ALLEGRO_EVENT* ev)
                         state->finished = true;
                         break;
                     case ALLEGRO_KEY_UP:
-                        select_prev_item(state->current_menu);
+                        select_next_item(state->current_menu);
                         break;
                     case ALLEGRO_KEY_DOWN:
-                        select_next_item(state->current_menu);
+                        select_prev_item(state->current_menu);
                         break;
                     case ALLEGRO_KEY_LSHIFT:
                     case ALLEGRO_KEY_SPACE:
