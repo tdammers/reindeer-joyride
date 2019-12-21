@@ -23,8 +23,11 @@ typedef unsigned short tile_t;
 #define CHECKPOINT9_TILE '9'
 #define START_FINISH_TILE '#'
 
-/**
- * The height, above ground, of the obstacle on the given tile.
- */
 double
-tile_obstacle_height(tile_t);
+tile_obstacle_top(tile_t);
+
+double
+tile_obstacle_bottom(tile_t);
+
+double
+tile_ground_elev(tile_t);

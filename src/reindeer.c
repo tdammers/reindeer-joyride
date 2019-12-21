@@ -28,7 +28,7 @@ update_reindeer(reindeer_t *reindeer, const tilemap_t *map, double dt)
 
     // calculate friction coefficient
     t = tilemap_get(map, (int)floor(reindeer->x) >> 5, (int)floor(reindeer->y) >> 5);
-    ground_elev = tile_obstacle_height(t);
+    ground_elev = tile_ground_elev(t);
     airborne = reindeer->alt > ground_elev + 4;
     in_water = (t == WATER_TILE) && !airborne;
 
@@ -111,14 +111,23 @@ update_reindeer(reindeer_t *reindeer, const tilemap_t *map, double dt)
     double ca = cos(reindeer->angle);
     double dx = reindeer->v * dt * sa;
     double dy = -reindeer->v * dt * ca;
+    int txc, tyc; // current position
+    int txn, tyn; // new position
 
     // lateral collision detection
-    t = tilemap_get(map, (int)floor(reindeer->x + dx) >> 5, (int)floor(reindeer->y + dy) >> 5);
-    ground_elev = tile_obstacle_height(t);
-    if (((((int)floor(reindeer->x + dx) >> 5) != (int)floor(reindeer->x) >> 5) ||
-        (((int)floor(reindeer->y + dy) >> 5) != (int)floor(reindeer->y) >> 5))
-        &&
-        (ground_elev > reindeer->alt + 0.1)) {
+    txc = (int)floor(reindeer->x) >> 5;
+    tyc = (int)floor(reindeer->y) >> 5;
+    txn = (int)floor(reindeer->x + dx) >> 5;
+    tyn = (int)floor(reindeer->y + dy) >> 5;
+
+    t = tilemap_get(map, txn, tyn);
+    ground_elev = tile_ground_elev(t);
+    int obstacle_top = tile_obstacle_top(t);
+    int obstacle_bottom = tile_obstacle_bottom(t);
+    if ((txn != txc || tyn != tyc) &&
+        ((reindeer->alt < ground_elev - 0.1) ||
+         (reindeer->alt > obstacle_bottom + 0.1 &&
+          reindeer->alt < obstacle_top - 0.1))) {
         // collision, oh no!
         reindeer->v = -reindeer->v * 0.5;
         reindeer->x -= dx;
@@ -133,7 +142,7 @@ update_reindeer(reindeer_t *reindeer, const tilemap_t *map, double dt)
     t = tilemap_get(map, (int)floor(reindeer->x) >> 5, (int)floor(reindeer->y) >> 5);
 
     // update altitude
-    ground_elev = 0.0; // tile_obstacle_height(t);
+    ground_elev = 0.0;
     reindeer->alt += reindeer->valt * dt;
     if (reindeer->alt < ground_elev) {
         reindeer->alt = ground_elev;
