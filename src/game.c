@@ -213,6 +213,17 @@ ALLEGRO_BITMAP* ground_tile_image_for(tile_t t, const images_t* images)
             return get_image(images, IMG_ASSET_TILE_WATER);
         case START_FINISH_TILE:
             return get_image(images, IMG_ASSET_TILE_START_FINISH);
+        case CHECKPOINT0_TILE:
+        case CHECKPOINT1_TILE:
+        case CHECKPOINT2_TILE:
+        case CHECKPOINT3_TILE:
+        case CHECKPOINT4_TILE:
+        case CHECKPOINT5_TILE:
+        case CHECKPOINT6_TILE:
+        case CHECKPOINT7_TILE:
+        case CHECKPOINT8_TILE:
+        case CHECKPOINT9_TILE:
+            return get_image(images, IMG_ASSET_TILE_CHECKPOINT_GROUND);
         default:
             return NULL;
     }
@@ -229,6 +240,17 @@ ALLEGRO_BITMAP* billboard_tile_image_for(tile_t t, const images_t* images, int v
             return get_image(images, IMG_ASSET_SPRITE_CANDYSTICK00 + (variation & 3));
         case START_FINISH_TILE:
             return get_image(images, IMG_ASSET_TILE_START_FINISH);
+        case CHECKPOINT0_TILE:
+        case CHECKPOINT1_TILE:
+        case CHECKPOINT2_TILE:
+        case CHECKPOINT3_TILE:
+        case CHECKPOINT4_TILE:
+        case CHECKPOINT5_TILE:
+        case CHECKPOINT6_TILE:
+        case CHECKPOINT7_TILE:
+        case CHECKPOINT8_TILE:
+        case CHECKPOINT9_TILE:
+            return get_image(images, IMG_ASSET_TILE_CHECKPOINT);
         default: return NULL;
     }
 }
@@ -263,7 +285,9 @@ draw_mode7_billboard_sprite(
 
     t = tilemap_get(state->map, tx, ty);
     billboard_bmp = billboard_tile_image_for(t, g->images, variation);
-    if (t == START_FINISH_TILE) {
+    if (t == START_FINISH_TILE ||
+        (t >= CHECKPOINT0_TILE &&
+         t <= CHECKPOINT9_TILE)) {
         elev = 48.0;
     }
     else if (state->reindeer.next_checkpoint >= 0 &&

@@ -4,7 +4,7 @@ double
 tile_obstacle_top(tile_t t) {
     if ((t >= CHECKPOINT0_TILE && t <= CHECKPOINT9_TILE) ||
         (t == START_FINISH_TILE))
-        return 48 + 16;
+        return 48 + 32;
     return 0;
 }
 
