@@ -502,13 +502,25 @@ void game_draw_top_down(const game_state_t* state, const render_context_t* g)
         y += 32;
     }
 
-    al_draw_line(
-        screen_w / 2.0,
-        screen_h / 2.0,
-        screen_w / 2.0 + sa * 16,
-        screen_h / 2.0 - ca * 16,
-        al_map_rgb(255, 0, 0),
-        1);
+    ALLEGRO_BITMAP* reindeer_bmp = get_image(g->images, IMG_ASSET_SPRITE_REINDEER_TOPDOWN);
+
+    if (reindeer_bmp) {
+        al_draw_rotated_bitmap(
+            reindeer_bmp,
+            16.0, 16.0,
+            screen_w / 2.0, screen_h / 2.0,
+            state->reindeer.angle,
+            0);
+    }
+    else {
+        al_draw_line(
+            screen_w / 2.0,
+            screen_h / 2.0,
+            screen_w / 2.0 + sa * 16,
+            screen_h / 2.0 - ca * 16,
+            al_map_rgb(255, 0, 0),
+            1);
+    }
 }
 
 void
