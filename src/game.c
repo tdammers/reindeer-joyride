@@ -544,6 +544,38 @@ stopwatch_fmt(char* buf, size_t bufsize, double t)
 }
 
 void
+draw_alti(const reindeer_t* reindeer, double cx, double cy, const render_context_t* g)
+{
+    ALLEGRO_BITMAP* clock_bmp = get_image(g->images, IMG_ASSET_UI_ALTI);
+    double angle = M_PI * 2.0 * (reindeer->alt + 0.5) / 256.0;
+    double sa = sin(angle);
+    double ca = cos(angle);
+    double dx = sa * 13.0;
+    double dy = ca * -13.0;
+    al_draw_bitmap(clock_bmp, cx - 15, cy - 15, 0);
+    al_draw_line(cx, cy, cx + dx, cy + dy, al_map_rgb(240, 240, 240), 1.0);
+}
+
+void
+draw_asi(const reindeer_t* reindeer, double cx, double cy, const render_context_t* g)
+{
+    ALLEGRO_BITMAP* clock_bmp = get_image(g->images, IMG_ASSET_UI_ASI);
+    double angle = 
+            (reindeer->v < 20.0)
+            ?
+            (M_PI * 0.25 + M_PI * 0.25 * reindeer->v / 20.0)
+            :
+            (M_PI * 0.5 + M_PI * 1.0 * (reindeer->v - 20.0) / (reindeer->max_speed - 20.0));
+    angle = fmax(M_PI * 0.25, fmin(angle, M_PI * 1.75));
+    double sa = sin(angle);
+    double ca = cos(angle);
+    double dx = sa * 13.0;
+    double dy = ca * -13.0;
+    al_draw_bitmap(clock_bmp, cx - 15, cy - 15, 0);
+    al_draw_line(cx, cy, cx + dx, cy + dy, al_map_rgb(240, 240, 240), 1.0);
+}
+
+void
 draw_stats(const game_state_t* state, const render_context_t* g)
 {
     int num_lines = 0;
@@ -556,6 +588,9 @@ draw_stats(const game_state_t* state, const render_context_t* g)
     if (state->paused) {
         al_draw_filled_rectangle(0, 0, 320, 240, al_map_rgba(0, 0, 0, 64));
     }
+
+    draw_alti(&state->reindeer, 180, 220, g);
+    draw_asi(&state->reindeer, 140, 220, g);
 
     if (state->paused) {
         int i = 0;
@@ -578,11 +613,6 @@ draw_stats(const game_state_t* state, const render_context_t* g)
     else {
         int i = 0;
         char buf[256];
-
-        snprintf(lines[i++], 512,
-            "SPD %3.0f ALT %3.0f",
-            state->reindeer.v,
-            state->reindeer.alt);
 
         snprintf(lines[i++], 512,
             "Race: %s",
