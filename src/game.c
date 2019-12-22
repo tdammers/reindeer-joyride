@@ -197,10 +197,11 @@ ALLEGRO_BITMAP* ground_tile_image_for(tile_t t, const images_t* images)
 {
     switch (t) {
         case EMPTY_TILE:
-        case TREE_TILE:
         case HOUSE_TILE:
-        case CANDYSTICK_TILE:
             return get_image(images, IMG_ASSET_TILE_SNOW);
+        case TREE_TILE:
+        case CANDYSTICK_TILE:
+            return get_image(images, IMG_ASSET_TILE_SNOW_SHADOW);
         case ARROW_N_TILE:
             return get_image(images, IMG_ASSET_TILE_SNOW_N);
         case ARROW_S_TILE:
@@ -223,7 +224,7 @@ ALLEGRO_BITMAP* ground_tile_image_for(tile_t t, const images_t* images)
         case CHECKPOINT7_TILE:
         case CHECKPOINT8_TILE:
         case CHECKPOINT9_TILE:
-            return get_image(images, IMG_ASSET_TILE_CHECKPOINT_GROUND);
+            return get_image(images, IMG_ASSET_TILE_SNOW_DARK);
         default:
             return NULL;
     }
@@ -269,6 +270,31 @@ ALLEGRO_COLOR tile_color_for(tile_t t)
     }
 }
 
+double
+billboard_ground_elev_for(tile_t t)
+{
+    switch (t) {
+        case START_FINISH_TILE:
+        case CHECKPOINT0_TILE:
+        case CHECKPOINT1_TILE:
+        case CHECKPOINT2_TILE:
+        case CHECKPOINT3_TILE:
+        case CHECKPOINT4_TILE:
+        case CHECKPOINT5_TILE:
+        case CHECKPOINT6_TILE:
+        case CHECKPOINT7_TILE:
+        case CHECKPOINT8_TILE:
+        case CHECKPOINT9_TILE:
+            return 48.0;
+        case TREE_TILE:
+            return -3.0;
+        case CANDYSTICK_TILE:
+            return -3.0;
+        default:
+            return 0.0;
+    }
+}
+
 void
 draw_mode7_billboard_sprite(
     const game_state_t* state,
@@ -285,21 +311,7 @@ draw_mode7_billboard_sprite(
 
     t = tilemap_get(state->map, tx, ty);
     billboard_bmp = billboard_tile_image_for(t, g->images, variation);
-    if (t == START_FINISH_TILE ||
-        (t >= CHECKPOINT0_TILE &&
-         t <= CHECKPOINT9_TILE)) {
-        elev = 48.0;
-    }
-    else if (state->reindeer.next_checkpoint >= 0 &&
-             t == CHECKPOINT0_TILE + state->reindeer.next_checkpoint) {
-        elev = 48.0 - 16.0 * pow(state->checkpoint_anim_phase, 2.0);
-        billboard_bmp = get_image(
-            g->images,
-            (state->reindeer.alt <= 32.0)
-                ? IMG_ASSET_SPRITE_WAYPOINT_ARROW_GREEN
-                : IMG_ASSET_SPRITE_WAYPOINT_ARROW_RED
-            );
-    }
+    elev = billboard_ground_elev_for(t);
 
     if (billboard_bmp) {
         if (!mode7_unproject(view,
@@ -380,7 +392,13 @@ void game_draw_mode7(const game_state_t* state, const render_context_t* g)
             sx = ground_x & 31;
             sy = ground_y & 31;
             t = tilemap_get(state->map, tx, ty);
-            tile_bmp = ground_tile_image_for(t, g->images);
+            if (state->reindeer.next_checkpoint >= 0 &&
+                t == CHECKPOINT0_TILE + state->reindeer.next_checkpoint) {
+                tile_bmp = get_image(g->images, IMG_ASSET_TILE_CHECKPOINT_GROUND);
+            }
+            else {
+                tile_bmp = ground_tile_image_for(t, g->images);
+            }
             if (tile_bmp) {
                 color = al_get_pixel(tile_bmp, sx, sy);
             }
