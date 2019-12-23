@@ -572,12 +572,13 @@ void
 draw_asi(const reindeer_t* reindeer, double cx, double cy, const render_context_t* g)
 {
     ALLEGRO_BITMAP* clock_bmp = get_image(g->images, IMG_ASSET_UI_ASI);
+    double v = hypotf(reindeer->vx, reindeer->vy);
     double angle = 
-            (reindeer->v < 20.0)
+            (v < 20.0)
             ?
-            (M_PI * 0.25 + M_PI * 0.25 * reindeer->v / 20.0)
+            (M_PI * 0.25 + M_PI * 0.25 * v / 20.0)
             :
-            (M_PI * 0.5 + M_PI * 1.0 * (reindeer->v - 20.0) / (reindeer->max_speed - 20.0));
+            (M_PI * 0.5 + M_PI * 1.0 * (v - 20.0) / (reindeer->max_speed - 20.0));
     angle = fmax(M_PI * 0.25, fmin(angle, M_PI * 1.75));
     double sa = sin(angle);
     double ca = cos(angle);

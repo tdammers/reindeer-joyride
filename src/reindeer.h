@@ -8,7 +8,8 @@ typedef struct reindeer_t {
     double y;
     double alt;
 
-    double v;
+    double vx;
+    double vy;
     double valt;
 
     double angle;
@@ -38,6 +39,7 @@ typedef struct reindeer_t {
     double acceleration;
     double max_speed;
     double rolling_friction;
+    double grip;
     double turn_torque;
     double turn_rate;
     double pitch_rate;

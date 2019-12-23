@@ -15,6 +15,7 @@ init_reindeer(reindeer_t *reindeer)
     reindeer->pitch_rate = 2.0;
     reindeer->climb_force = 100.0;
     reindeer->max_climb_rate = 100.0;
+    reindeer->grip = 500.0;
     reindeer->best_lap = -1;
 }
 
@@ -26,53 +27,61 @@ update_reindeer(reindeer_t *reindeer, const tilemap_t *map, double dt)
     int in_water;
     int airborne;
 
-    // calculate friction coefficient
+    // update angle
+    reindeer->angle += reindeer->vangle * dt;
+    double sa = sin(reindeer->angle);
+    double ca = cos(reindeer->angle);
+
+    // determine ground status
     t = tilemap_get(map, (int)floor(reindeer->x) >> 5, (int)floor(reindeer->y) >> 5);
     ground_elev = tile_ground_elev(t);
     airborne = reindeer->alt > ground_elev + 4;
     in_water = (t == WATER_TILE) && !airborne;
 
+    // process grip
+    double vp = -ca * reindeer->vy + sa * reindeer->vx;
+    double vn = ca * reindeer->vx + sa * reindeer->vy;
+    double frictionn = reindeer->grip;
+    if (airborne) {
+        frictionn = fabs(vn) * 2.5;
+    }
+    if (fabs(vn) > 0.00000001) {
+        double vnnew =
+                (vn > 0.0)
+                    ? fmax(vn - frictionn * dt, 0.0)
+                    : fmin(vn + frictionn * dt, 0.0);
+        reindeer->vx =  vp * sa + vnnew * ca;
+        reindeer->vy = -vp * ca + vnnew * sa;
+        (void)vnnew;
+    }
+
     // process accel/brake controls
-    if (reindeer->accel_control) {
-        reindeer->v += reindeer->acceleration * dt;
-        if (reindeer->v > reindeer->max_speed) {
-            reindeer->v = reindeer->max_speed;
-        }
+    double v = hypotf(reindeer->vx, reindeer->vy);
+    if (reindeer->accel_control && v < reindeer->max_speed) {
+        reindeer->vx += reindeer->acceleration * dt * sa;
+        reindeer->vy -= reindeer->acceleration * dt * ca;
     }
 
     double friction = reindeer->rolling_friction;
     if (airborne) {
-        friction = fabs(reindeer->v) * 0.1;
-    }
-    else if (in_water) {
-        friction = fabs(reindeer->v) * 5.0;
-    }
-    if (reindeer->v > 0.0) {
-        reindeer->v -= friction * dt;
-        if (reindeer->v < 0.0) {
-            reindeer->v = 0.0;
-        }
-    }
-    else {
-        reindeer->v += friction * dt;
-        if (reindeer->v > 0.0) {
-            reindeer->v = 0.0;
-        }
-    }
-
-    if (reindeer->brake_control) {
-        if (reindeer->v > 0.0) {
-            reindeer->v -= reindeer->acceleration * dt;
-            if (reindeer->v < 0.0) {
-                reindeer->v = 0.0;
-            }
+        if (reindeer->brake_control) {
+            friction = v * 1.0;
         }
         else {
-            reindeer->v += reindeer->acceleration * dt;
-            if (reindeer->v > 0.0) {
-                reindeer->v = 0.0;
-            }
+            friction = v * 0.1;
         }
+    }
+    else if (in_water) {
+        friction = v * 5.0;
+    }
+    else if (reindeer->brake_control) {
+        friction = reindeer->grip;
+    }
+    if (v > 0.00000001) {
+        double vnew = fmax(v - friction * dt, 0.0);
+        double vfac = vnew / v;
+        reindeer->vx *= vfac;
+        reindeer->vy *= vfac;
     }
 
     // process steering controls
@@ -96,8 +105,8 @@ update_reindeer(reindeer_t *reindeer, const tilemap_t *map, double dt)
     // elevator -> vertical speed
     double target_valt =
                 reindeer->max_climb_rate * reindeer->pitch *
-                reindeer->v / reindeer->max_speed
-                - fmax(0.0, 20.0 - reindeer->v);
+                v / reindeer->max_speed
+                - fmax(0.0, 20.0 - v);
     if (reindeer->valt > target_valt) {
         reindeer->valt = fmax(target_valt, reindeer->valt - reindeer->climb_force * dt);
     }
@@ -106,11 +115,8 @@ update_reindeer(reindeer_t *reindeer, const tilemap_t *map, double dt)
     }
 
     // update position
-    reindeer->angle += reindeer->vangle * dt;
-    double sa = sin(reindeer->angle);
-    double ca = cos(reindeer->angle);
-    double dx = reindeer->v * dt * sa;
-    double dy = -reindeer->v * dt * ca;
+    double dx = reindeer->vx * dt;
+    double dy = reindeer->vy * dt;
     int txc, tyc; // current position
     int txn, tyn; // new position
 
@@ -129,9 +135,10 @@ update_reindeer(reindeer_t *reindeer, const tilemap_t *map, double dt)
          (reindeer->alt > obstacle_bottom + 0.1 &&
           reindeer->alt < obstacle_top - 0.1))) {
         // collision, oh no!
-        reindeer->v = -reindeer->v * 0.5;
         reindeer->x -= dx;
         reindeer->y -= dy;
+        reindeer->vx = -reindeer->vx * 0.5;
+        reindeer->vy = -reindeer->vy * 0.5;
     }
     else {
         reindeer->x += dx;
@@ -148,7 +155,8 @@ update_reindeer(reindeer_t *reindeer, const tilemap_t *map, double dt)
         reindeer->alt = ground_elev;
         reindeer->valt = 0.0;
         if (ground_elev > 0.0) {
-            reindeer->v = 0.0;
+            reindeer->vx = 0.0;
+            reindeer->vy = 0.0;
         }
     }
     if (reindeer->alt > 256.0) {
@@ -189,7 +197,7 @@ update_reindeer(reindeer_t *reindeer, const tilemap_t *map, double dt)
         reindeer->bob_phase -= 2 * M_PI;
     }
 
-    double target_bob_strength = fmin(reindeer->v / 64.0, 1.0);
+    double target_bob_strength = fmin(v / 64.0, 1.0);
     if (reindeer->bob_strength < target_bob_strength) {
         reindeer->bob_strength =
             fmin(reindeer->bob_strength + dt * 2.0, target_bob_strength);
