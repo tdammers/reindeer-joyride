@@ -523,8 +523,8 @@ void game_draw_top_down(const game_state_t* state, const render_context_t* g)
     }
 }
 
-void
-draw_next_checkpoint_arrow(const game_state_t* state, const render_context_t* g)
+double
+get_next_checkpoint_heading(const game_state_t* state)
 {
     double cx, cy;
     if (state->reindeer.next_checkpoint < 0) {
@@ -537,7 +537,13 @@ draw_next_checkpoint_arrow(const game_state_t* state, const render_context_t* g)
     }
     double dx = (cx * 32.0) - state->reindeer.x;
     double dy = (cy * 32.0) - state->reindeer.y;
-    double dangle = atan2(-dx, dy);
+    return atan2(-dx, dy);
+}
+
+void
+draw_next_checkpoint_arrow(const game_state_t* state, const render_context_t* g)
+{
+    double dangle = get_next_checkpoint_heading(state);
     double angle = dangle - state->reindeer.angle;
     double sx = 160 - sin(angle) * 144;
     double sy = 120 + cos(angle) * 104;
@@ -589,6 +595,18 @@ draw_asi(const reindeer_t* reindeer, double cx, double cy, const render_context_
 }
 
 void
+draw_nav(const game_state_t* state, double cx, double cy, const render_context_t* g)
+{
+    ALLEGRO_BITMAP* clock_bmp = get_image(g->images, IMG_ASSET_UI_NAV);
+    ALLEGRO_BITMAP* rose_bmp = get_image(g->images, IMG_ASSET_UI_NAV_ROSE);
+    ALLEGRO_BITMAP* arrow_bmp = get_image(g->images, IMG_ASSET_UI_NAV_ARROW);
+    double arrow_dir = M_PI + get_next_checkpoint_heading(state) - state->reindeer.angle;
+    al_draw_bitmap(clock_bmp, cx - 15, cy - 15, 0);
+    al_draw_rotated_bitmap(rose_bmp, 16, 16, cx + 1, cy + 1, -state->reindeer.angle, 0);
+    al_draw_rotated_bitmap(arrow_bmp, 16, 16, cx + 1, cy + 1, arrow_dir, 0);
+}
+
+void
 draw_stats(const game_state_t* state, const render_context_t* g)
 {
     int num_lines = 0;
@@ -602,8 +620,9 @@ draw_stats(const game_state_t* state, const render_context_t* g)
         al_draw_filled_rectangle(0, 0, 320, 240, al_map_rgba(0, 0, 0, 64));
     }
 
-    draw_alti(&state->reindeer, 180, 220, g);
-    draw_asi(&state->reindeer, 140, 220, g);
+    draw_asi(&state->reindeer, 128, 220, g);
+    draw_alti(&state->reindeer, 160, 220, g);
+    draw_nav(state, 192, 220, g);
 
     if (state->paused) {
         int i = 0;
@@ -667,7 +686,6 @@ game_draw(const app_t* app, const render_context_t* g)
             game_draw_top_down(state, g);
             break;
     }
-    draw_next_checkpoint_arrow(state, g);
     draw_stats(state, g);
 }
 
