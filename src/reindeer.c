@@ -135,10 +135,18 @@ update_reindeer(reindeer_t *reindeer, const tilemap_t *map, double dt)
          (reindeer->alt > obstacle_bottom + 0.1 &&
           reindeer->alt < obstacle_top - 0.1))) {
         // collision, oh no!
-        reindeer->x -= dx;
-        reindeer->y -= dy;
-        reindeer->vx = -reindeer->vx * 0.5;
-        reindeer->vy = -reindeer->vy * 0.5;
+
+        if (txn != txc) {
+            // passed an X boundary
+            reindeer->x -= dx;
+            reindeer->vx = -reindeer->vx * 0.5;
+        }
+
+        if (tyn != tyc) {
+            // passed a Y boundary
+            reindeer->y -= dy;
+            reindeer->vy = -reindeer->vy * 0.5;
+        }
     }
     else {
         reindeer->x += dx;
