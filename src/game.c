@@ -13,7 +13,8 @@
 
 typedef struct game_state_t {
     tilemap_t *map;
-    reindeer_t reindeer;
+    reindeer_t *reindeer;
+    size_t num_reindeer;
     int steering_keys;
     int elevator_keys;
     int view_mode;
@@ -31,9 +32,14 @@ create_game_state(const char* map_filename)
     game_state_t *state = malloc(sizeof(game_state_t));
     memset(state, 0, sizeof(game_state_t));
     state->map = load_tilemap(map_filename);
-    init_reindeer(&(state->reindeer));
-    state->reindeer.x = (get_tilemap_start_x(state->map) * 32.0) + 16;
-    state->reindeer.y = ((get_tilemap_start_y(state->map) + 1) * 32.0) + 16;
+    state->num_reindeer = 4;
+    state->reindeer = malloc(sizeof(reindeer_t) * state->num_reindeer);
+    memset(state->reindeer, 0, sizeof(reindeer_t) * state->num_reindeer);
+    for (size_t i = 0; i < state->num_reindeer; ++i) {
+        init_reindeer(state->reindeer + i);
+        state->reindeer[i].x = (get_tilemap_start_x(state->map) * 32.0) + 16 + i * 32 - 32 * (state->num_reindeer - 1) * 0.5;
+        state->reindeer[i].y = ((get_tilemap_start_y(state->map) + 1) * 32.0) + 16;
+    }
     state->view_mode = 1;
 
     return state;
@@ -43,6 +49,7 @@ void
 destroy_game_state(game_state_t* state)
 {
     if (state->map) destroy_tilemap(state->map);
+    if (state->reindeer) free(state->reindeer);
     free(state);
 }
 
@@ -60,7 +67,9 @@ void game_tick(struct app_t* app, double dt)
         // TODO: pause mode animations
     }
     else {
-        update_reindeer(&(state->reindeer), state->map, dt);
+        for (size_t i = 0; i < state->num_reindeer; ++i) {
+            update_reindeer(state->reindeer + i, state->map, dt);
+        }
         state->checkpoint_anim_phase += dt;
         if (state->checkpoint_anim_phase >= 1.0) {
             state->checkpoint_anim_phase = -1.0;
@@ -73,13 +82,13 @@ update_steering(game_state_t* state)
 {
     switch (state->steering_keys) {
         case 1:
-            state->reindeer.turn_control = -1;
+            state->reindeer[0].turn_control = -1;
             break;
         case 2:
-            state->reindeer.turn_control = 1;
+            state->reindeer[0].turn_control = 1;
             break;
         default:
-            state->reindeer.turn_control = 0;
+            state->reindeer[0].turn_control = 0;
             break;
     }
 }
@@ -89,13 +98,13 @@ update_elevator(game_state_t* state)
 {
     switch (state->elevator_keys) {
         case 1:
-            state->reindeer.elevator_control = -1;
+            state->reindeer[0].elevator_control = -1;
             break;
         case 2:
-            state->reindeer.elevator_control = 1;
+            state->reindeer[0].elevator_control = 1;
             break;
         default:
-            state->reindeer.elevator_control = 0;
+            state->reindeer[0].elevator_control = 0;
             break;
     }
 }
@@ -157,10 +166,10 @@ void game_event(struct app_t* app, const ALLEGRO_EVENT* ev)
                     update_elevator(state);
                     break;
                 case ALLEGRO_KEY_LSHIFT:
-                    state->reindeer.accel_control = 1;
+                    state->reindeer[0].accel_control = 1;
                     break;
                 case ALLEGRO_KEY_LCTRL:
-                    state->reindeer.brake_control = 1;
+                    state->reindeer[0].brake_control = 1;
                     break;
             }
             break;
@@ -183,10 +192,10 @@ void game_event(struct app_t* app, const ALLEGRO_EVENT* ev)
                     update_elevator(state);
                     break;
                 case ALLEGRO_KEY_LSHIFT:
-                    state->reindeer.accel_control = 0;
+                    state->reindeer[0].accel_control = 0;
                     break;
                 case ALLEGRO_KEY_LCTRL:
-                    state->reindeer.brake_control = 0;
+                    state->reindeer[0].brake_control = 0;
                     break;
             }
             break;
@@ -356,17 +365,17 @@ void game_draw_mode7(const game_state_t* state, const render_context_t* g)
     screen_w = al_get_bitmap_width(g->target);
     screen_h = al_get_bitmap_height(g->target);
 
-    view.cam_x = state->reindeer.x;
-    view.cam_y = state->reindeer.y;
-    view.cam_angle = state->reindeer.angle;
+    view.cam_x = state->reindeer[0].x;
+    view.cam_y = state->reindeer[0].y;
+    view.cam_angle = state->reindeer[0].angle;
     view.cam_alt =
-        state->reindeer.alt +
-        cos(state->reindeer.bob_phase) * state->reindeer.bob_strength * 2.0 +
+        state->reindeer[0].alt +
+        cos(state->reindeer[0].bob_phase) * state->reindeer[0].bob_strength * 2.0 +
         16.0;
     view.screen_w = screen_w;
     view.screen_h = screen_h;
     view.screen_dist = screen_h * 2;
-    view.horizon_screen_y = screen_h / 4 + state->reindeer.pitch * screen_h / 8;
+    view.horizon_screen_y = screen_h / 4 + state->reindeer[0].pitch * screen_h / 8;
 
     ALLEGRO_BITMAP* background = get_image(g->images, IMG_ASSET_BACKGROUND_NIGHT_SKY);
     int bg_w = al_get_bitmap_width(background);
@@ -392,8 +401,8 @@ void game_draw_mode7(const game_state_t* state, const render_context_t* g)
             sx = ground_x & 31;
             sy = ground_y & 31;
             t = tilemap_get(state->map, tx, ty);
-            if (state->reindeer.next_checkpoint >= 0 &&
-                t == CHECKPOINT0_TILE + state->reindeer.next_checkpoint) {
+            if (state->reindeer[0].next_checkpoint >= 0 &&
+                t == CHECKPOINT0_TILE + state->reindeer[0].next_checkpoint) {
                 tile_bmp = get_image(g->images, IMG_ASSET_TILE_CHECKPOINT_GROUND);
             }
             else {
@@ -415,23 +424,23 @@ void game_draw_mode7(const game_state_t* state, const render_context_t* g)
     double ca = cos(view.cam_angle);
 
     if (ca > 0.0) {
-        ty0 = ((int)floor(state->reindeer.y) >> 5) - 128;
+        ty0 = ((int)floor(state->reindeer[0].y) >> 5) - 128;
         ty1 = ty0 + 256;
         tdy = 1;
     }
     else {
-        ty1 = ((int)floor(state->reindeer.y) >> 5) - 128;
+        ty1 = ((int)floor(state->reindeer[0].y) >> 5) - 128;
         ty0 = ty1 + 256;
         tdy = -1;
     }
 
     if (sa < 0.0) {
-        tx0 = ((int)floor(state->reindeer.x) >> 5) - 128;
+        tx0 = ((int)floor(state->reindeer[0].x) >> 5) - 128;
         tx1 = tx0 + 256;
         tdx = 1;
     }
     else {
-        tx1 = ((int)floor(state->reindeer.x) >> 5) - 128;
+        tx1 = ((int)floor(state->reindeer[0].x) >> 5) - 128;
         tx0 = tx1 + 256;
         tdx = -1;
     }
@@ -453,7 +462,7 @@ void game_draw_mode7(const game_state_t* state, const render_context_t* g)
 
     al_draw_bitmap(
         get_image(g->images, IMG_ASSET_SPRITE_REINDEER_FPV),
-        0, 80.0 + sin(state->reindeer.bob_phase) * state->reindeer.bob_strength * 20.0,
+        0, 80.0 + sin(state->reindeer[0].bob_phase) * state->reindeer[0].bob_strength * 20.0,
         0);
 }
 
@@ -466,8 +475,6 @@ void game_draw_top_down(const game_state_t* state, const render_context_t* g)
     tile_t t;
     double screen_w;
     double screen_h;
-    double sa = sin(state->reindeer.angle);
-    double ca = cos(state->reindeer.angle);
     ALLEGRO_COLOR color;
     ALLEGRO_BITMAP *tile_bmp;
 
@@ -475,12 +482,12 @@ void game_draw_top_down(const game_state_t* state, const render_context_t* g)
     screen_w = al_get_bitmap_width(g->target);
     screen_h = al_get_bitmap_height(g->target);
 
-    tx0 = (int)floor(state->reindeer.x - screen_w / 2) >> 5;
+    tx0 = (int)floor(state->reindeer[0].x - screen_w / 2) >> 5;
     tx1 = tx0 + 11;
-    ty0 = (int)floor(state->reindeer.y - screen_h / 2) >> 5;
+    ty0 = (int)floor(state->reindeer[0].y - screen_h / 2) >> 5;
     ty1 = ty0 + 9;
-    x0 = -((int)floor(state->reindeer.x - screen_w / 2) & 31);
-    y0 = -((int)floor(state->reindeer.y - screen_h / 2) & 31);
+    x0 = -((int)floor(state->reindeer[0].x - screen_w / 2) & 31);
+    y0 = -((int)floor(state->reindeer[0].y - screen_h / 2) & 31);
 
     y = y0;
     for (ty = ty0; ty < ty1; ++ty) {
@@ -504,22 +511,26 @@ void game_draw_top_down(const game_state_t* state, const render_context_t* g)
 
     ALLEGRO_BITMAP* reindeer_bmp = get_image(g->images, IMG_ASSET_SPRITE_REINDEER_TOPDOWN);
 
-    if (reindeer_bmp) {
-        al_draw_rotated_bitmap(
-            reindeer_bmp,
-            16.0, 16.0,
-            screen_w / 2.0, screen_h / 2.0,
-            state->reindeer.angle,
-            0);
-    }
-    else {
-        al_draw_line(
-            screen_w / 2.0,
-            screen_h / 2.0,
-            screen_w / 2.0 + sa * 16,
-            screen_h / 2.0 - ca * 16,
-            al_map_rgb(255, 0, 0),
-            1);
+    for (size_t i = 0; i < state->num_reindeer; ++i) {
+        double sa = sin(state->reindeer[i].angle);
+        double ca = cos(state->reindeer[i].angle);
+        double xx = screen_w / 2.0 + state->reindeer[i].x - state->reindeer[0].x;
+        double yy = screen_h / 2.0 + state->reindeer[i].y - state->reindeer[0].y;
+        if (reindeer_bmp) {
+            al_draw_rotated_bitmap(
+                reindeer_bmp,
+                16.0, 16.0,
+                xx, yy,
+                state->reindeer[i].angle,
+                0);
+        }
+        else {
+            al_draw_line(
+                xx, yy,
+                xx + sa * 16, yy - ca * 16,
+                al_map_rgb(255, 0, 0),
+                1);
+        }
     }
 }
 
@@ -527,16 +538,16 @@ double
 get_next_checkpoint_heading(const game_state_t* state)
 {
     double cx, cy;
-    if (state->reindeer.next_checkpoint < 0) {
+    if (state->reindeer[0].next_checkpoint < 0) {
         cx = get_tilemap_start_x(state->map);
         cy = get_tilemap_start_y(state->map);
     }
     else {
-        cx = get_tilemap_checkpoint_x(state->map, state->reindeer.next_checkpoint);
-        cy = get_tilemap_checkpoint_y(state->map, state->reindeer.next_checkpoint);
+        cx = get_tilemap_checkpoint_x(state->map, state->reindeer[0].next_checkpoint);
+        cy = get_tilemap_checkpoint_y(state->map, state->reindeer[0].next_checkpoint);
     }
-    double dx = (cx * 32.0) - state->reindeer.x;
-    double dy = (cy * 32.0) - state->reindeer.y;
+    double dx = (cx * 32.0) - state->reindeer[0].x;
+    double dy = (cy * 32.0) - state->reindeer[0].y;
     return atan2(-dx, dy);
 }
 
@@ -544,7 +555,7 @@ void
 draw_next_checkpoint_arrow(const game_state_t* state, const render_context_t* g)
 {
     double dangle = get_next_checkpoint_heading(state);
-    double angle = dangle - state->reindeer.angle;
+    double angle = dangle - state->reindeer[0].angle;
     double sx = 160 - sin(angle) * 144;
     double sy = 120 + cos(angle) * 104;
     al_draw_rotated_bitmap(
@@ -600,9 +611,9 @@ draw_nav(const game_state_t* state, double cx, double cy, const render_context_t
     ALLEGRO_BITMAP* clock_bmp = get_image(g->images, IMG_ASSET_UI_NAV);
     ALLEGRO_BITMAP* rose_bmp = get_image(g->images, IMG_ASSET_UI_NAV_ROSE);
     ALLEGRO_BITMAP* arrow_bmp = get_image(g->images, IMG_ASSET_UI_NAV_ARROW);
-    double arrow_dir = M_PI + get_next_checkpoint_heading(state) - state->reindeer.angle;
+    double arrow_dir = M_PI + get_next_checkpoint_heading(state) - state->reindeer[0].angle;
     al_draw_bitmap(clock_bmp, cx - 15, cy - 15, 0);
-    al_draw_rotated_bitmap(rose_bmp, 16, 16, cx + 1, cy + 1, -state->reindeer.angle, 0);
+    al_draw_rotated_bitmap(rose_bmp, 16, 16, cx + 1, cy + 1, -state->reindeer[0].angle, 0);
     al_draw_rotated_bitmap(arrow_bmp, 16, 16, cx + 1, cy + 1, arrow_dir, 0);
 }
 
@@ -620,8 +631,8 @@ draw_stats(const game_state_t* state, const render_context_t* g)
         al_draw_filled_rectangle(0, 0, 320, 240, al_map_rgba(0, 0, 0, 64));
     }
 
-    draw_asi(&state->reindeer, 128, 220, g);
-    draw_alti(&state->reindeer, 160, 220, g);
+    draw_asi(state->reindeer, 128, 220, g);
+    draw_alti(state->reindeer, 160, 220, g);
     draw_nav(state, 192, 220, g);
 
     if (state->paused) {
@@ -648,13 +659,13 @@ draw_stats(const game_state_t* state, const render_context_t* g)
 
         snprintf(lines[i++], 512,
             "Race: %s",
-            stopwatch_fmt(buf, 256, state->reindeer.race_time));
+            stopwatch_fmt(buf, 256, state->reindeer[0].race_time));
         snprintf(lines[i++], 512,
             "Lap %i: %s",
-            state->reindeer.laps_finished + 1,
-            stopwatch_fmt(buf, 256, state->reindeer.current_lap_time));
-        if (state->reindeer.best_lap >= 0) {
-            double best_time = state->reindeer.lap_times[state->reindeer.best_lap];
+            state->reindeer[0].laps_finished + 1,
+            stopwatch_fmt(buf, 256, state->reindeer[0].current_lap_time));
+        if (state->reindeer[0].best_lap >= 0) {
+            double best_time = state->reindeer[0].lap_times[state->reindeer[0].best_lap];
             snprintf(lines[i++], 512,
                 "Best: %s",
                 stopwatch_fmt(buf, 256, best_time));
