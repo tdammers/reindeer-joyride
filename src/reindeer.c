@@ -106,7 +106,7 @@ update_reindeer(reindeer_t *reindeer, const tilemap_t *map, double dt)
     double target_valt =
                 reindeer->max_climb_rate * reindeer->pitch *
                 v / reindeer->max_speed
-                - fmax(0.0, 20.0 - v);
+                - fmax(0.0, 20.0 - v) * 20.0;
     if (reindeer->valt > target_valt) {
         reindeer->valt = fmax(target_valt, reindeer->valt - reindeer->climb_force * dt);
     }
