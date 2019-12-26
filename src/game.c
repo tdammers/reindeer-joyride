@@ -3,55 +3,13 @@
 #include "img.h"
 #include "asset_ids.h"
 #include "mode7.h"
-#include "reindeer.h"
 #include "util.h"
+#include "game_state.h"
 
 #include <allegro5/allegro_primitives.h>
 #include <allegro5/allegro_font.h>
 #include <math.h>
 #include <stdio.h>
-
-typedef struct game_state_t {
-    tilemap_t *map;
-    reindeer_t *reindeer;
-    size_t num_reindeer;
-    int steering_keys;
-    int elevator_keys;
-    int view_mode;
-    double checkpoint_anim_phase;
-    bool paused;
-    bool finished;
-} game_state_t;
-
-#define VIEW_MODE_TOP_DOWN 0
-#define VIEW_MODE_FIRST_PERSON 1
-
-game_state_t*
-create_game_state(const char* map_filename)
-{
-    game_state_t *state = malloc(sizeof(game_state_t));
-    memset(state, 0, sizeof(game_state_t));
-    state->map = load_tilemap(map_filename);
-    state->num_reindeer = 4;
-    state->reindeer = malloc(sizeof(reindeer_t) * state->num_reindeer);
-    memset(state->reindeer, 0, sizeof(reindeer_t) * state->num_reindeer);
-    for (size_t i = 0; i < state->num_reindeer; ++i) {
-        init_reindeer(state->reindeer + i);
-        state->reindeer[i].x = (get_tilemap_start_x(state->map) * 32.0) + 16 + i * 32 - 32 * (state->num_reindeer - 1) * 0.5;
-        state->reindeer[i].y = ((get_tilemap_start_y(state->map) + 1) * 32.0) + 16;
-    }
-    state->view_mode = 1;
-
-    return state;
-}
-
-void
-destroy_game_state(game_state_t* state)
-{
-    if (state->map) destroy_tilemap(state->map);
-    if (state->reindeer) free(state->reindeer);
-    free(state);
-}
 
 void game_destroy(app_t* app)
 {
@@ -68,6 +26,9 @@ void game_tick(struct app_t* app, double dt)
     }
     else {
         for (size_t i = 0; i < state->num_reindeer; ++i) {
+            update_brain(state->brains[i], i, state);
+        }
+        for (size_t i = 0; i < state->num_reindeer; ++i) {
             update_reindeer(state->reindeer + i, state->map, dt);
         }
         state->checkpoint_anim_phase += dt;
@@ -77,41 +38,12 @@ void game_tick(struct app_t* app, double dt)
     }
 }
 
-static void
-update_steering(game_state_t* state)
-{
-    switch (state->steering_keys) {
-        case 1:
-            state->reindeer[0].turn_control = -1;
-            break;
-        case 2:
-            state->reindeer[0].turn_control = 1;
-            break;
-        default:
-            state->reindeer[0].turn_control = 0;
-            break;
-    }
-}
-
-static void
-update_elevator(game_state_t* state)
-{
-    switch (state->elevator_keys) {
-        case 1:
-            state->reindeer[0].elevator_control = -1;
-            break;
-        case 2:
-            state->reindeer[0].elevator_control = 1;
-            break;
-        default:
-            state->reindeer[0].elevator_control = 0;
-            break;
-    }
-}
-
 void game_event(struct app_t* app, const ALLEGRO_EVENT* ev)
 {
     game_state_t* state = app->state;
+    for (size_t i = 0; i < state->num_reindeer; ++i) {
+        if (brain_input(state->brains[i], ev)) break;
+    }
     if (state->paused) {
         switch (ev->type) {
             case ALLEGRO_EVENT_KEY_CHAR:
@@ -143,63 +75,6 @@ void game_event(struct app_t* app, const ALLEGRO_EVENT* ev)
         }
     }
 
-    // control inputs; because we're essentially capturing deltas here and
-    // use them to reconstruct key states, we need to keep doing this both
-    // when paused and unpaused.
-    switch (ev->type) {
-        case ALLEGRO_EVENT_KEY_DOWN:
-            switch (ev->keyboard.keycode) {
-                case ALLEGRO_KEY_LEFT:
-                    state->steering_keys |= 1;
-                    update_steering(state);
-                    break;
-                case ALLEGRO_KEY_RIGHT:
-                    state->steering_keys |= 2;
-                    update_steering(state);
-                    break;
-                case ALLEGRO_KEY_UP:
-                    state->elevator_keys |= 1;
-                    update_elevator(state);
-                    break;
-                case ALLEGRO_KEY_DOWN:
-                    state->elevator_keys |= 2;
-                    update_elevator(state);
-                    break;
-                case ALLEGRO_KEY_LSHIFT:
-                    state->reindeer[0].accel_control = 1;
-                    break;
-                case ALLEGRO_KEY_LCTRL:
-                    state->reindeer[0].brake_control = 1;
-                    break;
-            }
-            break;
-        case ALLEGRO_EVENT_KEY_UP:
-            switch (ev->keyboard.keycode) {
-                case ALLEGRO_KEY_LEFT:
-                    state->steering_keys &= ~1;
-                    update_steering(state);
-                    break;
-                case ALLEGRO_KEY_RIGHT:
-                    state->steering_keys &= ~2;
-                    update_steering(state);
-                    break;
-                case ALLEGRO_KEY_UP:
-                    state->elevator_keys &= ~1;
-                    update_elevator(state);
-                    break;
-                case ALLEGRO_KEY_DOWN:
-                    state->elevator_keys &= ~2;
-                    update_elevator(state);
-                    break;
-                case ALLEGRO_KEY_LSHIFT:
-                    state->reindeer[0].accel_control = 0;
-                    break;
-                case ALLEGRO_KEY_LCTRL:
-                    state->reindeer[0].brake_control = 0;
-                    break;
-            }
-            break;
-    }
 }
 
 ALLEGRO_BITMAP* ground_tile_image_for(tile_t t, const images_t* images)
