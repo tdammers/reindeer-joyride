@@ -230,6 +230,22 @@ get_next_checkpoint_heading(const reindeer_t* reindeer, const tilemap_t* tilemap
     }
     double dx = (cx * 32.0) - reindeer->x;
     double dy = (cy * 32.0) - reindeer->y;
-    return atan2(-dx, dy);
+    return atan2(dx, -dy);
 }
 
+double
+get_next_checkpoint_distance(const reindeer_t* reindeer, const tilemap_t* tilemap)
+{
+    double cx, cy;
+    if (reindeer->next_checkpoint < 0) {
+        cx = get_tilemap_start_x(tilemap);
+        cy = get_tilemap_start_y(tilemap);
+    }
+    else {
+        cx = get_tilemap_checkpoint_x(tilemap, reindeer->next_checkpoint);
+        cy = get_tilemap_checkpoint_y(tilemap, reindeer->next_checkpoint);
+    }
+    double dx = (cx * 32.0) - reindeer->x;
+    double dy = (cy * 32.0) - reindeer->y;
+    return hypot(dx, dy);
+}

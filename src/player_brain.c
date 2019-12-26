@@ -18,6 +18,12 @@ create_player_brain_state()
 }
 
 void
+destroy_player_brain_state(void* vstate)
+{
+    free(vstate);
+}
+
+void
 update_player_brain(
     void* vstate,
     size_t reindeer_index,
@@ -113,5 +119,6 @@ create_player_brain()
     brain->state = create_player_brain_state();
     brain->update = update_player_brain;
     brain->input = player_brain_input;
+    brain->destroy = destroy_player_brain_state;
     return brain;
 }

@@ -55,3 +55,6 @@ update_reindeer(reindeer_t *reindeer, const tilemap_t* map, double dt);
 
 double
 get_next_checkpoint_heading(const reindeer_t* reindeer, const tilemap_t* tilemap);
+
+double
+get_next_checkpoint_distance(const reindeer_t* reindeer, const tilemap_t* tilemap);

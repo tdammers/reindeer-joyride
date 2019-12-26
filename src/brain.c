@@ -26,7 +26,7 @@ brain_input(
     brain_t* brain,
     const ALLEGRO_EVENT* e)
 {
-    if (brain && brain->update) {
+    if (brain && brain->input) {
         return brain->input(brain->state, e);
     }
     else {

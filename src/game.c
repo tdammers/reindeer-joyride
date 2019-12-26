@@ -469,7 +469,7 @@ draw_nav(const game_state_t* state, double cx, double cy, const render_context_t
     ALLEGRO_BITMAP* clock_bmp = get_image(g->images, IMG_ASSET_UI_NAV);
     ALLEGRO_BITMAP* rose_bmp = get_image(g->images, IMG_ASSET_UI_NAV_ROSE);
     ALLEGRO_BITMAP* arrow_bmp = get_image(g->images, IMG_ASSET_UI_NAV_ARROW);
-    double arrow_dir = M_PI + get_next_checkpoint_heading(state->reindeer, state->map) - state->reindeer[0].angle;
+    double arrow_dir = get_next_checkpoint_heading(state->reindeer, state->map) - state->reindeer[0].angle;
     al_draw_bitmap(clock_bmp, cx - 15, cy - 15, 0);
     al_draw_rotated_bitmap(rose_bmp, 16, 16, cx + 1, cy + 1, -state->reindeer[0].angle, 0);
     al_draw_rotated_bitmap(arrow_bmp, 16, 16, cx + 1, cy + 1, arrow_dir, 0);
