@@ -534,27 +534,10 @@ void game_draw_top_down(const game_state_t* state, const render_context_t* g)
     }
 }
 
-double
-get_next_checkpoint_heading(const game_state_t* state)
-{
-    double cx, cy;
-    if (state->reindeer[0].next_checkpoint < 0) {
-        cx = get_tilemap_start_x(state->map);
-        cy = get_tilemap_start_y(state->map);
-    }
-    else {
-        cx = get_tilemap_checkpoint_x(state->map, state->reindeer[0].next_checkpoint);
-        cy = get_tilemap_checkpoint_y(state->map, state->reindeer[0].next_checkpoint);
-    }
-    double dx = (cx * 32.0) - state->reindeer[0].x;
-    double dy = (cy * 32.0) - state->reindeer[0].y;
-    return atan2(-dx, dy);
-}
-
 void
 draw_next_checkpoint_arrow(const game_state_t* state, const render_context_t* g)
 {
-    double dangle = get_next_checkpoint_heading(state);
+    double dangle = get_next_checkpoint_heading(state->reindeer, state->map);
     double angle = dangle - state->reindeer[0].angle;
     double sx = 160 - sin(angle) * 144;
     double sy = 120 + cos(angle) * 104;
@@ -611,7 +594,7 @@ draw_nav(const game_state_t* state, double cx, double cy, const render_context_t
     ALLEGRO_BITMAP* clock_bmp = get_image(g->images, IMG_ASSET_UI_NAV);
     ALLEGRO_BITMAP* rose_bmp = get_image(g->images, IMG_ASSET_UI_NAV_ROSE);
     ALLEGRO_BITMAP* arrow_bmp = get_image(g->images, IMG_ASSET_UI_NAV_ARROW);
-    double arrow_dir = M_PI + get_next_checkpoint_heading(state) - state->reindeer[0].angle;
+    double arrow_dir = M_PI + get_next_checkpoint_heading(state->reindeer, state->map) - state->reindeer[0].angle;
     al_draw_bitmap(clock_bmp, cx - 15, cy - 15, 0);
     al_draw_rotated_bitmap(rose_bmp, 16, 16, cx + 1, cy + 1, -state->reindeer[0].angle, 0);
     al_draw_rotated_bitmap(arrow_bmp, 16, 16, cx + 1, cy + 1, arrow_dir, 0);

@@ -1,7 +1,7 @@
 #include "reindeer.h"
 #include <stdlib.h>
-#include <string.h>
 #include <math.h>
+#include <string.h>
 
 void
 init_reindeer(reindeer_t *reindeer)
@@ -215,3 +215,21 @@ update_reindeer(reindeer_t *reindeer, const tilemap_t *map, double dt)
             fmax(reindeer->bob_strength - dt * 2.0, target_bob_strength);
     }
 }
+
+double
+get_next_checkpoint_heading(const reindeer_t* reindeer, const tilemap_t* tilemap)
+{
+    double cx, cy;
+    if (reindeer->next_checkpoint < 0) {
+        cx = get_tilemap_start_x(tilemap);
+        cy = get_tilemap_start_y(tilemap);
+    }
+    else {
+        cx = get_tilemap_checkpoint_x(tilemap, reindeer->next_checkpoint);
+        cy = get_tilemap_checkpoint_y(tilemap, reindeer->next_checkpoint);
+    }
+    double dx = (cx * 32.0) - reindeer->x;
+    double dy = (cy * 32.0) - reindeer->y;
+    return atan2(-dx, dy);
+}
+
