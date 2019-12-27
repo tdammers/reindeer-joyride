@@ -68,7 +68,8 @@ void game_event(struct app_t* app, const ALLEGRO_EVENT* ev)
                         state->paused = true;
                         break;
                     case ALLEGRO_KEY_V:
-                        state->view_mode ^= 1;
+                        state->view_mode++;
+                        state->view_mode %= 3;
                         break;
                 }
                 break;
@@ -409,16 +410,65 @@ void game_draw_top_down(const game_state_t* state, const render_context_t* g)
     }
 }
 
-void
-draw_next_checkpoint_arrow(const game_state_t* state, const render_context_t* g)
+ALLEGRO_COLOR map_tile_color(tile_t t) {
+    switch (t) {
+        case TREE_TILE:
+            return al_map_rgb(0, 128, 0);
+        case CANDYSTICK_TILE:
+        case HOUSE_TILE:
+            return al_map_rgb(96, 0, 0);
+
+        case CHECKPOINT0_TILE:
+        case CHECKPOINT1_TILE:
+        case CHECKPOINT2_TILE:
+        case CHECKPOINT3_TILE:
+        case CHECKPOINT4_TILE:
+        case CHECKPOINT5_TILE:
+        case CHECKPOINT6_TILE:
+        case CHECKPOINT7_TILE:
+        case CHECKPOINT8_TILE:
+        case CHECKPOINT9_TILE:
+        case START_FINISH_TILE:
+            return al_map_rgb(0, 255, 0);
+
+        case WATER_TILE:
+            return al_map_rgb(128, 192, 255);
+        default:
+            return al_map_rgb(255, 255, 255);
+    }
+}
+
+void game_draw_map(const game_state_t* state, const render_context_t* g)
 {
-    double dangle = get_next_checkpoint_heading(state->reindeer, state->map);
-    double angle = dangle - state->reindeer[0].angle;
-    double sx = 160 - sin(angle) * 144;
-    double sy = 120 + cos(angle) * 104;
-    al_draw_rotated_bitmap(
-        get_image(g->images, IMG_ASSET_SPRITE_WAYPOINT_ARROW_GREEN),
-        16, 16, sx, sy, angle, 0);
+    tile_t t;
+    double screen_w;
+    double screen_h;
+    ALLEGRO_COLOR color;
+
+    al_set_target_bitmap(g->target);
+    screen_w = al_get_bitmap_width(g->target);
+    screen_h = al_get_bitmap_height(g->target);
+
+    int tx0 = (int)round(state->reindeer->x / 32 - screen_w / 2);
+    int ty0 = (int)round(state->reindeer->y / 32 - screen_h / 2);
+
+    al_lock_bitmap(g->target, ALLEGRO_PIXEL_FORMAT_ANY, ALLEGRO_LOCK_READWRITE);
+    for (int sy = 0; sy < screen_h; ++sy) {
+        for (int sx = 0; sx < screen_w; ++sx) {
+            t = tilemap_get(state->map, sx + tx0, sy + ty0);
+            color = map_tile_color(t);
+            al_put_pixel(sx, sy, color);
+        }
+    }
+
+    color = al_map_rgb(200, 100, 0);
+    for (size_t i = 0; i < state->num_reindeer; ++i) {
+        al_put_pixel(
+            screen_w / 2 + (state->reindeer[i].x - state->reindeer[0].x) / 32,
+            screen_h / 2 + (state->reindeer[i].y - state->reindeer[0].y) / 32,
+            color);
+    }
+    al_unlock_bitmap(g->target);
 }
 
 char*
@@ -547,12 +597,15 @@ void
 game_draw(const app_t* app, const render_context_t* g)
 {
     game_state_t* state = app->state;
-    switch (state->view_mode) {
-        case 1:
+    switch (state->view_mode % 3) {
+        case 0:
             game_draw_mode7(state, g);
             break;
-        default:
+        case 1:
             game_draw_top_down(state, g);
+            break;
+        case 2:
+            game_draw_map(state, g);
             break;
     }
     draw_stats(state, g);
