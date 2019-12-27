@@ -31,3 +31,6 @@ tile_obstacle_bottom(tile_t);
 
 double
 tile_ground_elev(tile_t);
+
+double
+tile_ai_elev(tile_t);

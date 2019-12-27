@@ -23,8 +23,9 @@ create_game_state(const char* map_filename)
         state->reindeer[i].x = (get_tilemap_start_x(state->map) * 32.0) + 16 + i * 32 - 32 * (state->num_reindeer - 1) * 0.5;
         state->reindeer[i].y = ((get_tilemap_start_y(state->map) + 1) * 32.0) + 16;
         state->brains[i] = i ? create_ai_brain() : create_player_brain();
+        // state->brains[i] = create_ai_brain();
     }
-    state->view_mode = 1;
+    state->view_mode = 0;
 
     return state;
 }

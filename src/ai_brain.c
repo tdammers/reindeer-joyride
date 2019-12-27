@@ -3,6 +3,7 @@
 #include "game_state.h"
 
 #include <stdio.h>
+#include <math.h>
 
 typedef struct ai_brain_state_t {
     int dummy;
@@ -60,6 +61,58 @@ update_ai_brain(
         reindeer->brake_control = 1.0;
     }
     reindeer->turn_control = fmin(1.0, fmax(-1.0, (angle_error * 10.0 - reindeer->vangle) * 10.0));
+
+    double target_alt = 0;
+    double dx = sin(target_angle);
+    double dy = -cos(target_angle);
+    if (fabs(dx) > fabs(dy)) {
+        dy /= fabs(dx);
+        dx /= fabs(dx);
+    }
+    else {
+        dx /= fabs(dy);
+        dy /= fabs(dy);
+    }
+    dx *= 4;
+    dy *= 4;
+    size_t steps = (size_t)ceil(distance / hypotf(dx, dy)) + 1;
+    // printf("D: %03.0f | DX,DY: %03.1f,%03.1f | STEPS: %i\n",
+    //     distance,
+    //     dx, dy,
+    //     (int)steps);
+    double x = reindeer->x;
+    double y = reindeer->y;
+    for (size_t i = 0; i < steps; ++i) {
+        tile_t t = tilemap_get(
+                    game_state->map,
+                    (int)floor(x / 32.0),
+                    (int)floor(y / 32.0));
+        double alt = tile_ai_elev(t);
+        // printf("%3i|%3i -> %03.0f\n",
+        //     (int)floor(x / 32.0),
+        //     (int)floor(y / 32.0),
+        //     alt);
+
+        target_alt = fmax(alt, target_alt);
+        x += dx;
+        y += dy;
+    }
+
+    double target_valt = (target_alt - reindeer->alt);
+    if (target_valt > reindeer->valt + 0.1) {
+        reindeer->elevator_control = 1;
+    }
+    else if (target_valt < reindeer->valt - 0.1) {
+        reindeer->elevator_control = -1;
+    }
+    else {
+        reindeer->elevator_control = 0;
+    }
+    // printf("T: %+03.0f | A: %+03.0f | E: %i\n",
+    //     target_alt,
+    //     reindeer->alt,
+    //     reindeer->elevator_control);
+    
     // printf("T: %+2i | A: %i | B: %i\n",
     //     reindeer->turn_control,
     //     reindeer->accel_control,
