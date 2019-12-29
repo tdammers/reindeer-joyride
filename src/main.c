@@ -10,12 +10,10 @@
 #include "game.h"
 #include "ui.h"
 #include "img.h"
+#include "util.h"
 
 void
 run_app(app_t *app, int fullscreen);
-
-void
-die(const char* msg);
 
 typedef struct options_t {
     const char* track_filename;
@@ -187,12 +185,5 @@ run_app(app_t *app, int fullscreen)
     }
     al_destroy_font(default_font);
     al_destroy_bitmap(drawbuf);
-}
-
-void
-die(const char* msg)
-{
-    fprintf(stdout, "Error: %s\n", msg);
-    exit(-1);
 }
 

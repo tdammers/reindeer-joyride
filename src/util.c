@@ -1,4 +1,5 @@
 #include "util.h"
+#include <stdio.h>
 
 int min(int a, int b) { return (a < b) ? a : b; }
 int max(int a, int b) { return (a > b) ? a : b; }
@@ -20,3 +21,11 @@ al_draw_outlined_text(
     }
     al_draw_text(font, fg, x, y, mode, str);
 }
+
+void
+die(const char* msg)
+{
+    fprintf(stdout, "Error: %s\n", msg);
+    exit(-1);
+}
+

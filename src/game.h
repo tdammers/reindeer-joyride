@@ -3,4 +3,4 @@
 #include "app.h"
 
 app_t*
-create_game(const char *track_filename);
+create_game(int mode, const char *track_filename);

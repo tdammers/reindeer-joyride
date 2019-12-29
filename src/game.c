@@ -31,10 +31,6 @@ void game_tick(struct app_t* app, double dt)
         for (size_t i = 0; i < state->num_reindeer; ++i) {
             update_reindeer(state->reindeer + i, state->map, dt);
         }
-        state->checkpoint_anim_phase += dt;
-        if (state->checkpoint_anim_phase >= 1.0) {
-            state->checkpoint_anim_phase = -1.0;
-        }
     }
 }
 
@@ -619,10 +615,10 @@ game_finished(const app_t* app)
 }
 
 app_t*
-create_game(const char *map_filename)
+create_game(int mode, const char *map_filename)
 {
     app_t *app = create_app();
-    app->state = create_game_state(map_filename);
+    app->state = create_game_state(mode, map_filename);
     app->destroy = game_destroy;
     app->draw = game_draw;
     app->tick = game_tick;

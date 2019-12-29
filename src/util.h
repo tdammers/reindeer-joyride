@@ -15,3 +15,6 @@ al_draw_outlined_text(
     int x, int y,
     int mode,
     const char* str);
+
+void
+die(const char* msg);

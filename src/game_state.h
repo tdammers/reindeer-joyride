@@ -13,16 +13,23 @@ typedef struct game_state_t {
     reindeer_t *reindeer;
     brain_t **brains;
     int view_mode;
-    double checkpoint_anim_phase;
     bool paused;
     bool finished;
+    size_t num_races;
+    size_t current_race;
+    char** race_filenames;
 } game_state_t;
 
 #define VIEW_MODE_TOP_DOWN 0
 #define VIEW_MODE_FIRST_PERSON 1
 
+#define GAME_MODE_TIME_TRIAL 0
+#define GAME_MODE_AI_DEBUG 1
+#define GAME_MODE_SINGLE_RACE 2
+#define GAME_MODE_TOURNAMENT 3
+
 game_state_t*
-create_game_state(const char* map_filename);
+create_game_state(int game_mode, const char* level_filename);
 
 void
 destroy_game_state(game_state_t* state);

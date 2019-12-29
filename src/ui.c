@@ -3,6 +3,7 @@
 #include "asset_ids.h"
 #include "menu.h"
 #include "game.h"
+#include "game_state.h"
 #include "util.h"
 #include "tilemap.h"
 
@@ -13,19 +14,24 @@
 
 #define ACTION_QUIT 0
 #define ACTION_BACK 1
-#define ACTION_PLAY 2
 #define ACTION_TRACK_SELECT 3
+#define ACTION_MODE_SELECT_TIME_TRIAL 101
+#define ACTION_MODE_SELECT_SINGLE_RACE 102
+#define ACTION_MODE_SELECT_TOURNAMENT 103
+#define ACTION_MODE_SELECT_AI_DEBUG 104
 
 typedef struct ui_state_t {
     bool finished;
 
     menu_t* main_menu;
+    menu_t* track_select_menu;
     menu_t* current_menu;
     menu_t** menu_stack;
     size_t menu_stack_cap;
     size_t menu_stack_len;
 
     char* track_filename;
+    int game_mode;
 
     app_t* game;
 } ui_state_t;
@@ -66,16 +72,27 @@ create_ui_state(const char* track_filename)
 {
     ui_state_t *state = malloc(sizeof(ui_state_t));
 
+    // Game mode menu
+    menu_t* game_mode_menu = make_menu();
+    add_menu_item(game_mode_menu,
+        make_action_menu_item("TIME TRIAL", ACTION_MODE_SELECT_TIME_TRIAL));
+    add_menu_item(game_mode_menu,
+        make_action_menu_item("SINGLE RACE", ACTION_MODE_SELECT_SINGLE_RACE));
+    add_menu_item(game_mode_menu,
+        make_action_menu_item("AI DEBUG", ACTION_MODE_SELECT_AI_DEBUG));
+    add_menu_item(game_mode_menu,
+        make_action_menu_item("<< BACK", ACTION_BACK));
+
     // Make main menu
     state->main_menu = make_menu();
     state->main_menu->background_image_id = IMG_ASSET_UI_TITLE_SCREEN;
     add_menu_item(state->main_menu,
-        make_action_menu_item("PLAY", ACTION_PLAY));
+        make_submenu_menu_item("PLAY", game_mode_menu));
 
-    menu_t* track_select_menu = make_menu();
-    list_tracks(track_select_menu, NULL);
-    add_menu_item(state->main_menu,
-        make_submenu_menu_item("TRACK", track_select_menu));
+    state->track_select_menu = make_menu();
+    list_tracks(state->track_select_menu, NULL);
+    add_menu_item(state->track_select_menu,
+        make_action_menu_item("<< BACK", ACTION_BACK));
 
     menu_t* quit_menu = make_menu();
     add_menu_item(quit_menu,
@@ -158,6 +175,7 @@ destroy_ui_state(ui_state_t* state)
         destroy_app(state->game);
     }
     destroy_menu(state->main_menu);
+    destroy_menu(state->track_select_menu);
     free(state->menu_stack);
     free(state->track_filename);
     free(state);
@@ -198,12 +216,23 @@ void ui_activate_menu(ui_state_t* state)
                     case ACTION_BACK:
                         pop_menu(state);
                         break;
+
+                    case ACTION_MODE_SELECT_TIME_TRIAL:
+                        state->game_mode = GAME_MODE_TIME_TRIAL;
+                        push_menu(state, state->track_select_menu);
+                        break;
+                    case ACTION_MODE_SELECT_SINGLE_RACE:
+                        state->game_mode = GAME_MODE_SINGLE_RACE;
+                        push_menu(state, state->track_select_menu);
+                        break;
+                    case ACTION_MODE_SELECT_AI_DEBUG:
+                        state->game_mode = GAME_MODE_AI_DEBUG;
+                        push_menu(state, state->track_select_menu);
+                        break;
+
                     case ACTION_TRACK_SELECT:
                         state->track_filename = (char*)action->param;
-                        pop_menu(state);
-                        break;
-                    case ACTION_PLAY:
-                        state->game = create_game(state->track_filename);
+                        state->game = create_game(state->game_mode, state->track_filename);
                         break;
                 }
             }
