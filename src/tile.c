@@ -29,10 +29,10 @@ tile_ground_elev(tile_t t) {
 double
 tile_ai_elev(tile_t t) {
     switch (t) {
-        case TREE_TILE: return 72;
-        case HOUSE_TILE: return 56;
-        case CANDYSTICK_TILE: return 72;
-        case WATER_TILE: return 8;
+        case TREE_TILE: return 76;
+        case HOUSE_TILE: return 60;
+        case CANDYSTICK_TILE: return 76;
+        case WATER_TILE: return 16;
         default: return 0;
     }
 }

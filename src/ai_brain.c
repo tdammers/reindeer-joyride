@@ -73,9 +73,9 @@ update_ai_brain(
         dx /= fabs(dy);
         dy /= fabs(dy);
     }
-    dx *= 4;
-    dy *= 4;
-    size_t steps = (size_t)ceil(distance / hypotf(dx, dy)) + 1;
+    dx *= 2;
+    dy *= 2;
+    size_t steps = (size_t)ceil(distance / hypotf(dx, dy)) + 5;
     // printf("D: %03.0f | DX,DY: %03.1f,%03.1f | STEPS: %i\n",
     //     distance,
     //     dx, dy,
@@ -88,11 +88,18 @@ update_ai_brain(
                     (int)floor(x / 32.0),
                     (int)floor(y / 32.0));
         double alt = tile_ai_elev(t);
+        double alt_limit = tile_obstacle_bottom(t);
+
         // printf("%3i|%3i -> %03.0f\n",
         //     (int)floor(x / 32.0),
         //     (int)floor(y / 32.0),
         //     alt);
 
+        if (alt_limit > 0.0 && alt_limit < target_alt) {
+            // We have to pass below an obstacle, so don't consider subsequent
+            // tiles.
+            break;
+        }
         target_alt = fmax(alt, target_alt);
         x += dx;
         y += dy;
