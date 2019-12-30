@@ -145,8 +145,9 @@ select_next_item(menu_t* menu)
 void
 select_first_item(menu_t* menu)
 {
-    menu->selected_item = menu->num_items - 1;
+    menu->selected_item = 0;
     select_next_item(menu);
+    select_prev_item(menu);
 }
 
 void
