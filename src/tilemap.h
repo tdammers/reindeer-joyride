@@ -15,6 +15,7 @@ typedef struct waypoint_t {
     double y;
     double max_alt;
     int flyover;
+    int checkpoint;
 } waypoint_t;
 
 typedef struct waypoint_list_t {

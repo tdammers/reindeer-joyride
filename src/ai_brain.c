@@ -7,6 +7,8 @@
 
 typedef struct ai_brain_state_t {
     size_t next_waypoint;
+    double randx;
+    double randy;
 } ai_brain_state_t;
 
 ai_brain_state_t*
@@ -35,6 +37,11 @@ update_ai_brain(
     const waypoint_list_t* wpl = get_tilemap_ai_waypoints(game_state->map);
     double tx, ty;
 
+    if (rand() % 1024 == 0) {
+        state->randx = (double)rand() / (double)RAND_MAX * 2.0 - 1.0;
+        state->randy = (double)rand() / (double)RAND_MAX * 2.0 - 1.0;
+    }
+
     if (wpl && wpl->num) {
         const waypoint_t* wp;
         if (state->next_waypoint >= wpl->num) {
@@ -42,11 +49,19 @@ update_ai_brain(
         }
         wp = wpl->points + state->next_waypoint;
         double d = get_distance_to(reindeer, wp->x, wp->y);
-        if ((wp->flyover && d < 16.0) || (!wp->flyover && d <= 64.0)) {
+        if (wp->flyover) {
+            if (wp->checkpoint != reindeer->next_checkpoint) {
+                state->next_waypoint++;
+                state->next_waypoint %= wpl->num;
+                wp = wpl->points + state->next_waypoint;
+                // printf("Next waypoint: #%i\n", (int)state->next_waypoint);
+            }
+        }
+        else if (d < 64.0) {
             state->next_waypoint++;
             state->next_waypoint %= wpl->num;
             wp = wpl->points + state->next_waypoint;
-            printf("Next waypoint: #%i\n", (int)state->next_waypoint);
+            // printf("Next waypoint: #%i\n", (int)state->next_waypoint);
         }
 
         tx = wp->x;
@@ -56,8 +71,8 @@ update_ai_brain(
         get_next_checkpoint(&tx, &ty, reindeer, game_state->map);
     }
 
-    tx += 0.5;
-    ty += 0.5;
+    tx += 0.5 + state->randx;
+    ty += 0.5 + state->randy;
 
     double distance = get_distance_to(reindeer, tx, ty);
 

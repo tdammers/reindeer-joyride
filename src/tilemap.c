@@ -291,15 +291,17 @@ load_tilemap(const char* filename)
                     wp.y = m->checkpoint_y[i];
                     wp.max_alt = 8;
                     wp.flyover = true;
+                    wp.checkpoint = i;
                     printf("Add AI waypoint (%c): %3.0f, %3.0f\n", c, wp.x, wp.y);
                     push_waypoint(m->ai_waypoints, wp);
                 }
                 else if (c == '#') {
                     waypoint_t wp;
                     wp.x = m->start_x;
-                    wp.y = m->start_x;
+                    wp.y = m->start_y;
                     wp.max_alt = 8;
                     wp.flyover = true;
+                    wp.checkpoint = -1;
                     printf("Add AI waypoint (%c): %3.0f, %3.0f\n", c, wp.x, wp.y);
                     push_waypoint(m->ai_waypoints, wp);
                 }
