@@ -33,6 +33,8 @@ typedef struct ui_state_t {
     char* track_filename;
     int game_mode;
 
+    double flash_anim_phase;
+
     app_t* game;
 } ui_state_t;
 
@@ -205,9 +207,8 @@ void ui_tick(struct app_t* app, double dt)
         state->game->tick(state->game, dt);
     }
     else {
-        (void)app;
-        (void)dt;
-        (void)state;
+        state->flash_anim_phase += dt;
+        state->flash_anim_phase = fmod(state->flash_anim_phase, 1.0);
     }
 }
 
@@ -312,7 +313,9 @@ ui_draw(const app_t* app, const render_context_t* g)
                 item->label);
             al_draw_outlined_text(
                 g->font,
-                selected ? al_map_rgb(255, 128, 0) : al_map_rgb(240, 240, 255),
+                selected ?
+                    al_map_rgb(255, (int)floor(192. + sin(state->flash_anim_phase * 2.0 * M_PI) * 63.), 0) :
+                    al_map_rgb(240, 32, 0),
                 al_map_rgba(0, 0, 0, 200),
                 x, y, ALLEGRO_ALIGN_CENTER,
                 str);
