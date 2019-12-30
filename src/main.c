@@ -183,7 +183,12 @@ run_app(app_t *app, int fullscreen)
             }
         }
     }
+    al_unregister_event_source(event_queue, al_get_keyboard_event_source());
+    al_destroy_event_queue(event_queue);
+    unload_images(images);
     al_destroy_font(default_font);
     al_destroy_bitmap(drawbuf);
+    al_destroy_display(display);
+    al_uninstall_keyboard();
 }
 

@@ -72,6 +72,7 @@ destroy_menu_item(menu_item_t* item)
             free(item->data);
             break;
     }
+    free(item->label);
     free(item);
 }
 

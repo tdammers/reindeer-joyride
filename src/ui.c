@@ -45,13 +45,12 @@ list_tracks_callback(
     const char* filename = strdup(al_get_fs_entry_name(entry)); 
     printf("%s\n", filename);
     tilemap_meta_t* meta = load_tilemap_meta(filename);
-    char* name = strdup(meta->name);
-    destroy_tilemap_meta(meta);
     add_menu_item(menu,
         make_action_menu_item_ex(
-            name,
+            meta->name,
             ACTION_TRACK_SELECT,
             (void*)filename));
+    destroy_tilemap_meta(meta);
         
     return ALLEGRO_FOR_EACH_FS_ENTRY_OK;
 }
@@ -65,10 +64,11 @@ list_tracks(menu_t* menu, const char* dirname)
     }
     ALLEGRO_FS_ENTRY* dir = al_create_fs_entry(dirname);
     al_for_each_fs_entry(dir, list_tracks_callback, menu);
+    al_destroy_fs_entry(dir);
 }
 
 ui_state_t*
-create_ui_state(const char* track_filename)
+create_ui_state()
 {
     ui_state_t *state = malloc(sizeof(ui_state_t));
 
@@ -113,7 +113,7 @@ create_ui_state(const char* track_filename)
     // Activate main menu
     state->current_menu = state->main_menu;
 
-    state->track_filename = strdup(track_filename);
+    state->track_filename = NULL;
 
     return state;
 }
@@ -173,11 +173,11 @@ destroy_ui_state(ui_state_t* state)
 {
     if (state->game) {
         destroy_app(state->game);
+        state->game = NULL;
     }
     destroy_menu(state->main_menu);
     destroy_menu(state->track_select_menu);
     free(state->menu_stack);
-    free(state->track_filename);
     free(state);
 }
 
@@ -317,10 +317,10 @@ ui_finished(const app_t* app)
 }
 
 app_t*
-create_ui(const char* track_filename)
+create_ui()
 {
     app_t *app = create_app();
-    app->state = create_ui_state(track_filename);
+    app->state = create_ui_state();
     app->destroy = ui_destroy;
     app->draw = ui_draw;
     app->tick = ui_tick;
