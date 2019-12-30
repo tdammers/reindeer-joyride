@@ -67,6 +67,7 @@ create_waypoint_list()
 void
 destroy_waypoint_list(waypoint_list_t* l)
 {
+    if (!l) return;
     free(l->points);
     free(l);
 }
