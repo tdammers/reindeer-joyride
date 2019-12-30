@@ -83,11 +83,22 @@ create_ui_state()
     add_menu_item(game_mode_menu,
         make_action_menu_item("<< BACK", ACTION_BACK));
 
+    menu_t* help_menu = make_menu();
+    add_menu_item(help_menu, make_static_menu_item("** CONTROLS **"));
+    add_menu_item(help_menu, make_static_menu_item("Cursor L/R: steer left / right"));
+    add_menu_item(help_menu, make_static_menu_item("Cursor Up/Dn: pitch down / up"));
+    add_menu_item(help_menu, make_static_menu_item("Left Shift: accelerate"));
+    add_menu_item(help_menu, make_static_menu_item("Left Ctrl: decelerate"));
+    add_menu_item(help_menu, make_static_menu_item("P / Esc: pause"));
+    add_menu_item(help_menu, make_action_menu_item("<< BACK", ACTION_BACK));
+
     // Make main menu
     state->main_menu = make_menu();
     state->main_menu->background_image_id = IMG_ASSET_UI_TITLE_SCREEN;
     add_menu_item(state->main_menu,
         make_submenu_menu_item("PLAY", game_mode_menu));
+    add_menu_item(state->main_menu,
+        make_submenu_menu_item("HELP", help_menu));
 
     state->track_select_menu = make_menu();
     list_tracks(state->track_select_menu, NULL);
