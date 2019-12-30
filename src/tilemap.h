@@ -1,6 +1,7 @@
 #pragma once
 
 #include "tile.h"
+#include <stdlib.h>
 
 typedef struct tilemap_t tilemap_t;
 
@@ -8,6 +9,19 @@ typedef struct tilemap_meta_t {
     char* name;
     char* description;
 } tilemap_meta_t;
+
+typedef struct waypoint_t {
+    double x;
+    double y;
+    double max_alt;
+    int flyover;
+} waypoint_t;
+
+typedef struct waypoint_list_t {
+    size_t num;
+    size_t cap;
+    waypoint_t* points;
+} waypoint_list_t;
 
 
 int
@@ -42,6 +56,9 @@ destroy_tilemap_meta(tilemap_meta_t*);
 
 tilemap_t*
 load_tilemap(const char* filename);
+
+const waypoint_list_t*
+get_tilemap_ai_waypoints(const tilemap_t*);
 
 double
 get_tilemap_start_x(const tilemap_t*);

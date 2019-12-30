@@ -22,6 +22,7 @@ struct tilemap_t {
     double start_y;
     double checkpoint_x[10];
     double checkpoint_y[10];
+    waypoint_list_t* ai_waypoints;
 };
 
 int
@@ -55,10 +56,42 @@ create_tilemap(int w, int h)
     return tilemap;
 }
 
+waypoint_list_t*
+create_waypoint_list()
+{
+    waypoint_list_t* l = malloc(sizeof(waypoint_list_t));
+    memset(l, 0, sizeof(waypoint_list_t));
+    return l;
+}
+
+void
+destroy_waypoint_list(waypoint_list_t* l)
+{
+    free(l->points);
+    free(l);
+}
+
+void
+push_waypoint(waypoint_list_t* l, waypoint_t w)
+{
+    if (l->num >= l->cap) {
+        if (l->cap == 0) {
+            l->cap = 4;
+        }
+        else {
+            l->cap <<= 1;
+        }
+        l->points = realloc(l->points, sizeof(waypoint_t) * l->cap);
+    }
+    memcpy(l->points + l->num, &w, sizeof(waypoint_t));
+    l->num++;
+}
+
 void
 destroy_tilemap(tilemap_t *tilemap)
 {
     free(tilemap->data);
+    destroy_waypoint_list(tilemap->ai_waypoints);
     free(tilemap);
 }
 
@@ -158,6 +191,13 @@ load_tilemap_meta_f(FILE* f)
     return m;
 }
 
+const waypoint_list_t*
+get_tilemap_ai_waypoints(const tilemap_t* t)
+{
+    return t->ai_waypoints;
+}
+
+
 tilemap_meta_t*
 load_tilemap_meta(const char* filename)
 {
@@ -186,9 +226,19 @@ load_tilemap(const char* filename)
     load_tilemap_meta_f(f);
     fscanf(f, "%i %i\n", &w, &h);
     m = create_tilemap(w, h);
+    waypoint_t letter_wps[26];
+    memset(letter_wps, 0, sizeof(waypoint_t) * 26);
     for (int y = 0; y < h; ++y) {
         for (int x = 0; x < w; ++x) {
             c = fgetc(f);
+            if (c >= 'a' && c <= 'z') {
+                int wpi = (int)c - (int)'a';
+                letter_wps[wpi].x = x;
+                letter_wps[wpi].y = y;
+                letter_wps[wpi].max_alt = 256;
+                letter_wps[wpi].flyover = false;
+                c = EMPTY_TILE;
+            }
             tilemap_set(m, x, y, c);
             if (c >= CHECKPOINT0_TILE && c <= CHECKPOINT9_TILE) {
                 int i = c - CHECKPOINT0_TILE;
@@ -208,12 +258,65 @@ load_tilemap(const char* filename)
         c = fgetc(f);
         assert(c == '\n');
     }
-    fclose(f);
     m->start_x /= start_count;
     m->start_y /= start_count;
     for (int i = 0; i < 10; ++i) {
         m->checkpoint_x[i] /= checkpoint_count[i];
         m->checkpoint_y[i] /= checkpoint_count[i];
     }
+
+    while (!feof(f)) {
+        char buf[1024];
+        if (!fgets(buf, 1024, f)) break;
+        if (strcmp(buf, "ai-waypoints\n") == 0) {
+            printf("Load AI waypoints\n");
+            if (!m->ai_waypoints) {
+                m->ai_waypoints = create_waypoint_list();
+            }
+            fgets(buf, 1024, f);
+            printf("Waypoint list: %s\n", buf);
+            for (char* cp = buf; *cp; ++cp) {
+                char c = *cp;
+                if (c >= 'a' && c <= 'z') {
+                    printf("Add AI waypoint (%c): %3.0f, %3.0f\n",
+                        c,
+                        letter_wps[c - 'a'].x,
+                        letter_wps[c - 'a'].y);
+                    push_waypoint(m->ai_waypoints, letter_wps[c - 'a']);
+                }
+                else if (c >= '0' && c <= '9') {
+                    waypoint_t wp;
+                    int i = c - '0';
+                    wp.x = m->checkpoint_x[i];
+                    wp.y = m->checkpoint_y[i];
+                    wp.max_alt = 8;
+                    wp.flyover = true;
+                    printf("Add AI waypoint (%c): %3.0f, %3.0f\n", c, wp.x, wp.y);
+                    push_waypoint(m->ai_waypoints, wp);
+                }
+                else if (c == '#') {
+                    waypoint_t wp;
+                    wp.x = m->start_x;
+                    wp.y = m->start_x;
+                    wp.max_alt = 8;
+                    wp.flyover = true;
+                    printf("Add AI waypoint (%c): %3.0f, %3.0f\n", c, wp.x, wp.y);
+                    push_waypoint(m->ai_waypoints, wp);
+                }
+                else if (c == '\n') {
+                    continue;
+                }
+                else {
+                    fprintf(stderr, "Warning: invalid waypoint '%c'\n", c);
+                }
+            }
+
+        }
+        else {
+            fprintf(stderr, "Unknown entry: %s\n", buf);
+            fgets(buf, 1024, f);
+        }
+    }
+    fclose(f);
     return m;
 }

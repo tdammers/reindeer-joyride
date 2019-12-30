@@ -217,35 +217,46 @@ update_reindeer(reindeer_t *reindeer, const tilemap_t *map, double dt)
 }
 
 double
-get_next_checkpoint_heading(const reindeer_t* reindeer, const tilemap_t* tilemap)
+get_heading_to(const reindeer_t* reindeer, double cx, double cy)
 {
-    double cx, cy;
-    if (reindeer->next_checkpoint < 0) {
-        cx = get_tilemap_start_x(tilemap);
-        cy = get_tilemap_start_y(tilemap);
-    }
-    else {
-        cx = get_tilemap_checkpoint_x(tilemap, reindeer->next_checkpoint);
-        cy = get_tilemap_checkpoint_y(tilemap, reindeer->next_checkpoint);
-    }
     double dx = (cx * 32.0) - reindeer->x;
     double dy = (cy * 32.0) - reindeer->y;
     return atan2(dx, -dy);
 }
 
 double
+get_distance_to(const reindeer_t* reindeer, double cx, double cy)
+{
+    double dx = (cx * 32.0) - reindeer->x;
+    double dy = (cy * 32.0) - reindeer->y;
+    return hypot(dx, -dy);
+}
+
+void
+get_next_checkpoint(double* cx, double* cy, const reindeer_t* reindeer, const tilemap_t* tilemap)
+{
+    if (reindeer->next_checkpoint < 0) {
+        *cx = get_tilemap_start_x(tilemap);
+        *cy = get_tilemap_start_y(tilemap);
+    }
+    else {
+        *cx = get_tilemap_checkpoint_x(tilemap, reindeer->next_checkpoint);
+        *cy = get_tilemap_checkpoint_y(tilemap, reindeer->next_checkpoint);
+    }
+}
+
+double
+get_next_checkpoint_heading(const reindeer_t* reindeer, const tilemap_t* tilemap)
+{
+    double cx, cy;
+    get_next_checkpoint(&cx, &cy, reindeer, tilemap);
+    return get_heading_to(reindeer, cx, cy);
+}
+
+double
 get_next_checkpoint_distance(const reindeer_t* reindeer, const tilemap_t* tilemap)
 {
     double cx, cy;
-    if (reindeer->next_checkpoint < 0) {
-        cx = get_tilemap_start_x(tilemap);
-        cy = get_tilemap_start_y(tilemap);
-    }
-    else {
-        cx = get_tilemap_checkpoint_x(tilemap, reindeer->next_checkpoint);
-        cy = get_tilemap_checkpoint_y(tilemap, reindeer->next_checkpoint);
-    }
-    double dx = (cx * 32.0) - reindeer->x;
-    double dy = (cy * 32.0) - reindeer->y;
-    return hypot(dx, dy);
+    get_next_checkpoint(&cx, &cy, reindeer, tilemap);
+    return get_distance_to(reindeer, cx, cy);
 }

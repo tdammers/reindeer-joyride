@@ -6,7 +6,7 @@
 #include <math.h>
 
 typedef struct ai_brain_state_t {
-    int dummy;
+    size_t next_waypoint;
 } ai_brain_state_t;
 
 ai_brain_state_t*
@@ -32,9 +32,37 @@ update_ai_brain(
     ai_brain_state_t* state = (ai_brain_state_t*)vstate;
     reindeer_t* reindeer = game_state->reindeer + reindeer_index;
 
-    (void)state;
+    const waypoint_list_t* wpl = get_tilemap_ai_waypoints(game_state->map);
+    double tx, ty;
 
-    double target_angle = get_next_checkpoint_heading(reindeer, game_state->map);
+    if (wpl && wpl->num) {
+        const waypoint_t* wp;
+        if (state->next_waypoint >= wpl->num) {
+            state->next_waypoint = 0;
+        }
+        wp = wpl->points + state->next_waypoint;
+        double d = get_distance_to(reindeer, wp->x, wp->y);
+        if ((wp->flyover && d < 16.0) || (!wp->flyover && d <= 64.0)) {
+            state->next_waypoint++;
+            state->next_waypoint %= wpl->num;
+            wp = wpl->points + state->next_waypoint;
+            printf("Next waypoint: #%i\n", (int)state->next_waypoint);
+        }
+
+        tx = wp->x;
+        ty = wp->y;
+    }
+    else {
+        get_next_checkpoint(&tx, &ty, reindeer, game_state->map);
+    }
+
+    tx += 0.5;
+    ty += 0.5;
+
+    double distance = get_distance_to(reindeer, tx, ty);
+
+    double target_angle = get_heading_to(reindeer, tx, ty);
+
     double actual_angle = fmod(reindeer->angle, 2.0 * M_PI);
     double angle_error = target_angle - actual_angle;
     while (angle_error > M_PI) {
@@ -50,7 +78,6 @@ update_ai_brain(
     //     angle_error * 180.0 / M_PI);
 
     double v = hypot(reindeer->vx, reindeer->vy);
-    double distance = get_next_checkpoint_distance(reindeer, game_state->map);
     double turn_radius = v / reindeer->turn_rate / M_PI;
     if (distance >= fabs(angle_error) * turn_radius) {
         reindeer->accel_control = 1.0;
