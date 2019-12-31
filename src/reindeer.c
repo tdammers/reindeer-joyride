@@ -3,21 +3,30 @@
 #include <math.h>
 #include <string.h>
 
-const char*
-default_reindeer_name(size_t index)
+static char*
+default_reindeer_names[8] =
 {
-    switch (index % 8) {
-        case 0: return "Dasher";
-        case 1: return "Dancer";
-        case 2: return "Prancer";
-        case 3: return "Vixen";
-        case 4: return "Comet";
-        case 5: return "Cupid";
-        case 6: return "Donder";
-        case 7: return "Blitzen";
-        default: return "Rudolph"; // this shouldn't happen
+    "Dasher",
+    "Dancer",
+    "Prancer",
+    "Vixen",
+    "Comet",
+    "Cupid",
+    "Donder",
+    "Blitzen"
+};
+
+void shuffle_reindeer_names()
+{
+   for (size_t i = 7; i > 0; i--) {
+        size_t j = (unsigned int) (drand48() * (i+1));
+        char* t = default_reindeer_names[j];
+        default_reindeer_names[j] = default_reindeer_names[i];
+        default_reindeer_names[i] = t;
     }
 }
+
+static size_t reindeer_names_generated = 0;
 
 void
 init_reindeer(reindeer_t *reindeer, const char* name)
@@ -36,7 +45,11 @@ init_reindeer(reindeer_t *reindeer, const char* name)
     reindeer->bob_phase = (double)rand() / (double)RAND_MAX * M_PI * 2.0;
 
     if (!name && !reindeer->name) {
-        name = default_reindeer_name(rand());
+        if (reindeer_names_generated % 8 == 0) {
+            shuffle_reindeer_names();
+        }
+        name = default_reindeer_names[reindeer_names_generated % 8];
+        reindeer_names_generated++;
     }
     if (name) {
         free(reindeer->name);
