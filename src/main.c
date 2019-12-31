@@ -10,7 +10,9 @@
 #include "game.h"
 #include "ui.h"
 #include "img.h"
+#include "fonts.h"
 #include "util.h"
+#include "asset_ids.h"
 
 void
 run_app(app_t *app, int fullscreen);
@@ -68,11 +70,13 @@ run_app(app_t *app, int fullscreen)
     ALLEGRO_EVENT_QUEUE *event_queue = NULL;
     ALLEGRO_BITMAP *drawbuf = NULL;
     ALLEGRO_DISPLAY *display = NULL;
-    ALLEGRO_FONT *default_font = NULL;
     double t, tl, tprev;
     double frame_rate = 256.0;
     double frame_time = 0.0;
+    double frame_count = 0.0;
+    double fps = 0.0;
     images_t *images = NULL;
+    fonts_t *fonts = NULL;
 
     al_init();
 
@@ -110,21 +114,13 @@ run_app(app_t *app, int fullscreen)
         al_get_display_width(display),
         al_get_display_height(display));
 
-    default_font =
-        al_load_font(
-            "data/fonts/UncialAntiqua-Regular.otf",
-            13,
-            ALLEGRO_TTF_MONOCHROME);
-    if (!default_font) {
-        default_font = al_create_builtin_font();
-    }
-
     event_queue = al_create_event_queue();
     al_register_event_source(event_queue, al_get_keyboard_event_source());
 
     drawbuf = al_create_bitmap(320, 240);
     al_set_new_bitmap_flags(ALLEGRO_MEMORY_BITMAP);
     images = load_images("data/");
+    fonts = load_fonts("data/");
 
     t = tl = tprev = al_get_time();
 
@@ -135,10 +131,16 @@ run_app(app_t *app, int fullscreen)
             tl += 1.0 / frame_rate;
             if (app->tick) app->tick(app, 1.0 / frame_rate);
         }
-        frame_time = t - tprev;
+        frame_time += t - tprev;
+        frame_count += 1.0;
+        if (frame_time >= 1.0) {
+            fps = frame_count / frame_time;
+            frame_time = t - tprev;
+            frame_count = 1.0;
+        }
 
         if (app->draw) {
-            render_context_t g = { drawbuf, images, default_font };
+            render_context_t g = { drawbuf, images, fonts };
             app->draw(app, &g);
         }
         al_set_target_backbuffer(display);
@@ -162,16 +164,11 @@ run_app(app_t *app, int fullscreen)
             0);
         {
             char str[256];
-            if (frame_time < 0.00000000000001) {
-                snprintf(str, 255, "%3.0s FPS", "+++");
-            }
-            else {
-                snprintf(str, 255, "%3.0f FPS", round(1.0 / frame_time));
-            }
+            snprintf(str, 255, "%3.0f FPS", round(fps));
             al_draw_text(
-                default_font,
+                get_font(fonts, FONT_ASSET_ROBOTO_REGULAR, FONT_SIZE_S),
                 al_map_rgb(255, 128, 0),
-                0, al_get_bitmap_height(al_get_backbuffer(display)) - 10,
+                0, al_get_bitmap_height(al_get_backbuffer(display)) - font_sizes[FONT_SIZE_S],
                 0,
                 str);
         }
@@ -186,7 +183,7 @@ run_app(app_t *app, int fullscreen)
     al_unregister_event_source(event_queue, al_get_keyboard_event_source());
     al_destroy_event_queue(event_queue);
     unload_images(images);
-    al_destroy_font(default_font);
+    unload_fonts(fonts);
     al_destroy_bitmap(drawbuf);
     al_destroy_display(display);
     al_uninstall_keyboard();

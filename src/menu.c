@@ -11,6 +11,8 @@ make_menu_item(const char* label)
     menu_item_t* item = malloc(sizeof(menu_item_t));
     memset(item, 0, sizeof(menu_item_t));
     item->label = strdup(label);
+    item->font = -1;
+    item->size = -1;
     return item;
 }
 
@@ -47,6 +49,20 @@ make_action_menu_item_ex(const char* label, int action, void* param)
     menu_item_t* item = make_menu_item(label);
     item->type = MENU_ITEM_TYPE_ACTION;
     item->data = action_data;
+    return item;
+}
+
+menu_item_t*
+set_menu_item_font(int font, menu_item_t* item)
+{
+    item->font = font;
+    return item;
+}
+
+menu_item_t*
+set_menu_item_size(int size, menu_item_t* item)
+{
+    item->size = size;
     return item;
 }
 

@@ -87,11 +87,26 @@ create_ui_state()
 
     menu_t* help_menu = make_menu();
     add_menu_item(help_menu, make_static_menu_item("** CONTROLS **"));
-    add_menu_item(help_menu, make_static_menu_item("Cursor L/R: steer left / right"));
-    add_menu_item(help_menu, make_static_menu_item("Cursor Up/Dn: pitch down / up"));
-    add_menu_item(help_menu, make_static_menu_item("Left Shift: accelerate"));
-    add_menu_item(help_menu, make_static_menu_item("Left Ctrl: decelerate"));
-    add_menu_item(help_menu, make_static_menu_item("P / Esc: pause"));
+    add_menu_item(help_menu,
+        set_menu_item_font(FONT_ASSET_ROBOTO_REGULAR,
+        set_menu_item_size(FONT_SIZE_S,
+        make_static_menu_item("Cursor L/R: steer left / right"))));
+    add_menu_item(help_menu,
+        set_menu_item_font(FONT_ASSET_ROBOTO_REGULAR,
+        set_menu_item_size(FONT_SIZE_S,
+        make_static_menu_item("Cursor Up/Dn: pitch down / up"))));
+    add_menu_item(help_menu,
+        set_menu_item_font(FONT_ASSET_ROBOTO_REGULAR,
+        set_menu_item_size(FONT_SIZE_S,
+        make_static_menu_item("Left Shift: accelerate"))));
+    add_menu_item(help_menu,
+        set_menu_item_font(FONT_ASSET_ROBOTO_REGULAR,
+        set_menu_item_size(FONT_SIZE_S,
+        make_static_menu_item("Left Ctrl: decelerate"))));
+    add_menu_item(help_menu,
+        set_menu_item_font(FONT_ASSET_ROBOTO_REGULAR,
+        set_menu_item_size(FONT_SIZE_S,
+        make_static_menu_item("P / Esc: pause"))));
     add_menu_item(help_menu, make_action_menu_item("<< BACK", ACTION_BACK));
 
     // Make main menu
@@ -298,28 +313,27 @@ ui_draw(const app_t* app, const render_context_t* g)
         state->game->draw(state->game, g);
     }
     else {
+        double line_height = (double)font_sizes[FONT_SIZE_M] * 1.5;
         al_set_target_bitmap(g->target);
         double x = 160.0;
-        double y = (double)(240 - state->current_menu->num_items * 16) * 0.5;
+        double y = (double)(240 - state->current_menu->num_items * line_height) * 0.5;
         al_draw_bitmap(
             get_image(g->images, state->current_menu->background_image_id),
             0, 0, 0);
         for (size_t i = 0; i < state->current_menu->num_items; ++i) {
             menu_item_t* item = state->current_menu->items[i];
             bool selected = i == state->current_menu->selected_item;
-            char str[512];
-            snprintf(str, 512,
-                selected ? ">> %s <<" : "%s",
-                item->label);
+            int fontid = (item->font >= 0) ? item->font : FONT_ASSET_UNCIALANTIQUA_REGULAR;
+            int fontsize = (item->size >= 0) ? item->size : FONT_SIZE_M;
             al_draw_outlined_text(
-                g->font,
+                get_font(g->fonts, fontid, fontsize),
                 selected ?
                     al_map_rgb(255, (int)floor(192. + sin(state->flash_anim_phase * 2.0 * M_PI) * 63.), 0) :
                     al_map_rgb(240, 32, 0),
                 al_map_rgba(0, 0, 0, 200),
                 x, y, ALLEGRO_ALIGN_CENTER,
-                str);
-            y += 16;
+                item->label);
+            y += line_height;
         }
     }
 }

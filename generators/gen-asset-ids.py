@@ -8,7 +8,7 @@ with open("src/asset_ids.h", "w") as header:
         header.write("#pragma once\n\n")
         source.write('#include "asset_ids.h"\n\n')
 
-        def process_subdir(path, typrefix, subs):
+        def process_subdir(path, typrefix, extensions, subs):
             source.write('const char* {0}_asset_filenames[] = {1}\n' \
                 .format(typrefix.lower(), '{'))
 
@@ -16,13 +16,25 @@ with open("src/asset_ids.h", "w") as header:
             for sub in subs:
                 subpath, subprefix = sub
                 completed = subprocess.run(
-                    ["find", os.path.join(path, subpath), "-type", "f"],
+                    ["find",
+                        os.path.join(path, subpath),
+                        "-type", "f",
+                        "-exec", "echo", "{}", ";"],
                     capture_output=True)
 
-                asset_filenames = completed.stdout.split()
+                asset_filenames = completed.stdout.split(b'\n')
                 asset_filenames.sort()
 
                 for asset_filename in asset_filenames:
+                    if not asset_filename:
+                        continue
+                    matches_extension = False
+                    for extension in extensions:
+                        if asset_filename.endswith(extension.encode('ascii')):
+                            matches_extension = True
+                            break;
+                    if not matches_extension:
+                        continue
                     tile_name = \
                         os \
                             .path \
@@ -31,8 +43,12 @@ with open("src/asset_ids.h", "w") as header:
                             .decode('ascii') \
                             .split(".")[0] \
                             .replace('-', '_')
-                    header.write("#define {0}_ASSET_{1}_{2} {3}\n" \
-                        .format(typrefix, subprefix, tile_name, i))
+                    header.write("#define {0}_ASSET_{1}{2} {3}\n" \
+                        .format(
+                            typrefix,
+                            subprefix + "_" if subprefix else "",
+                            tile_name,
+                            i))
 
                     local_filename = \
                         os.path.relpath(asset_filename.decode('ascii'), "./data")
@@ -47,10 +63,15 @@ with open("src/asset_ids.h", "w") as header:
 
             source.write("};\n")
 
-        process_subdir("data/img", "IMG", \
+        process_subdir("data/img", "IMG", [".png"], \
             [
                 ("tiles", "TILE"),
                 ("sprites", "SPRITE"),
                 ("backgrounds", "BACKGROUND"),
                 ("ui", "UI")
+            ])
+
+        process_subdir("data/fonts", "FONT", [".ttf", ".otf"], \
+            [
+                (".", ""),
             ])

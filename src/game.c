@@ -580,7 +580,7 @@ draw_stats(const game_state_t* state, const render_context_t* g)
 
     for (int i = 0; i < num_lines; ++i) {
         al_draw_outlined_text(
-            g->font,
+            get_font(g->fonts, FONT_ASSET_UNCIALANTIQUA_REGULAR, FONT_SIZE_M),
             al_map_rgb(255, 128, 0),
             al_map_rgba(0, 0, 0, 200),
             x, y, mode,

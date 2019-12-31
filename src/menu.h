@@ -8,6 +8,8 @@
 
 typedef struct menu_item_t {
     char* label;
+    int font;
+    int size;
     int type;
     void* data;
 } menu_item_t;
@@ -36,6 +38,12 @@ make_action_menu_item(const char*, int);
 
 menu_item_t*
 make_action_menu_item_ex(const char*, int, void*);
+
+menu_item_t*
+set_menu_item_font(int, menu_item_t*);
+
+menu_item_t*
+set_menu_item_size(int, menu_item_t*);
 
 void
 destroy_menu_item(menu_item_t*);

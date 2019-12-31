@@ -3,11 +3,12 @@
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_font.h>
 #include "img.h"
+#include "fonts.h"
 
 typedef struct render_context_t {
     ALLEGRO_BITMAP* target;
     images_t* images;
-    ALLEGRO_FONT* font;
+    fonts_t* fonts;
 } render_context_t;
 
 typedef struct app_t {
