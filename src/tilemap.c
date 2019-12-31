@@ -279,19 +279,13 @@ load_tilemap(const char* filename)
         char buf[1024];
         if (!fgets(buf, 1024, f)) break;
         if (strcmp(buf, "ai-waypoints\n") == 0) {
-            printf("Load AI waypoints\n");
             if (!m->ai_waypoints) {
                 m->ai_waypoints = create_waypoint_list();
             }
             fgets(buf, 1024, f);
-            printf("Waypoint list: %s\n", buf);
             for (char* cp = buf; *cp; ++cp) {
                 char c = *cp;
                 if (c >= 'a' && c <= 'z') {
-                    printf("Add AI waypoint (%c): %3.0f, %3.0f\n",
-                        c,
-                        letter_wps[c - 'a'].x,
-                        letter_wps[c - 'a'].y);
                     push_waypoint(m->ai_waypoints, letter_wps[c - 'a']);
                 }
                 else if (c >= '0' && c <= '9') {
@@ -302,7 +296,6 @@ load_tilemap(const char* filename)
                     wp.max_alt = 8;
                     wp.flyover = true;
                     wp.checkpoint = i;
-                    printf("Add AI waypoint (%c): %3.0f, %3.0f\n", c, wp.x, wp.y);
                     push_waypoint(m->ai_waypoints, wp);
                 }
                 else if (c == '#') {
@@ -312,7 +305,6 @@ load_tilemap(const char* filename)
                     wp.max_alt = 8;
                     wp.flyover = true;
                     wp.checkpoint = -1;
-                    printf("Add AI waypoint (%c): %3.0f, %3.0f\n", c, wp.x, wp.y);
                     push_waypoint(m->ai_waypoints, wp);
                 }
                 else if (c == '\n') {
