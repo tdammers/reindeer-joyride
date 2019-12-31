@@ -5,8 +5,8 @@
 #include <allegro5/allegro_ttf.h>
 
 const int font_sizes[NUM_FONT_SIZES] = {
-    11,  /* FONT_SIZE_S */
-    14, /* FONT_SIZE_M */
+    10,  /* FONT_SIZE_S */
+    13, /* FONT_SIZE_M */
     18, /* FONT_SIZE_L */
 };
 
@@ -32,7 +32,8 @@ load_fonts(const char* datadir)
             fonts->fonts[i * NUM_FONT_SIZES + s] =
                 al_load_font(
                     al_path_cstr(path, ALLEGRO_NATIVE_PATH_SEP),
-                    font_sizes[s], ALLEGRO_TTF_MONOCHROME);
+                    font_sizes[s],
+                    ALLEGRO_TTF_MONOCHROME | ALLEGRO_TTF_NO_KERNING | ALLEGRO_TTF_NO_AUTOHINT);
         }
         al_destroy_path(path);
     }

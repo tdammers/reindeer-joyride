@@ -524,9 +524,6 @@ draw_nav(const game_state_t* state, double cx, double cy, const render_context_t
 void
 draw_stats(const game_state_t* state, const render_context_t* g)
 {
-    int num_lines = 0;
-    char lines[512][32];
-
     int x = 2;
     int y = 2;
     int mode = ALLEGRO_ALIGN_LEFT;
@@ -541,6 +538,8 @@ draw_stats(const game_state_t* state, const render_context_t* g)
 
     if (state->paused) {
         int i = 0;
+        int num_lines = 0;
+        char lines[512][32];
 
         snprintf(lines[i++], 512,
             "PAUSED");
@@ -556,36 +555,63 @@ draw_stats(const game_state_t* state, const render_context_t* g)
         mode = ALLEGRO_ALIGN_CENTRE;
 
         num_lines = i;
+
+        for (int i = 0; i < num_lines; ++i) {
+            al_draw_outlined_text(
+                get_font(g->fonts, FONT_ASSET_UNCIALANTIQUA_REGULAR, FONT_SIZE_M),
+                al_map_rgb(255, 128, 0),
+                al_map_rgba(0, 0, 0, 200),
+                x, y, mode,
+                lines[i]);
+            y += 16;
+        }
     }
     else {
-        int i = 0;
         char buf[256];
+        char tbuf[256];
 
-        snprintf(lines[i++], 512,
+        ALLEGRO_FONT* font_s = get_font(g->fonts, FONT_ASSET_ROBOTO_MEDIUM, FONT_SIZE_S);
+        ALLEGRO_FONT* font_m = get_font(g->fonts, FONT_ASSET_ROBOTO_MEDIUM, FONT_SIZE_M);
+        ALLEGRO_COLOR white = al_map_rgb(255, 255, 255);
+        ALLEGRO_COLOR gray = al_map_rgb(192, 192, 192);
+        ALLEGRO_COLOR green = al_map_rgb(192, 255, 192);
+        ALLEGRO_COLOR bg = al_map_rgba(0, 0, 0, 128);
+
+        double y = 2;
+
+        snprintf(buf, 256,
             "Race: %s",
-            stopwatch_fmt(buf, 256, state->reindeer[0].race_time));
-        snprintf(lines[i++], 512,
+            stopwatch_fmt(tbuf, 256, state->reindeer[0].race_time));
+        al_draw_outlined_text(
+            font_m,
+            white, bg,
+            2, y, ALLEGRO_ALIGN_LEFT,
+            buf);
+
+        y += 2 + font_sizes[FONT_SIZE_M];
+
+        for (int i = 0; i < state->reindeer[0].laps_finished; ++i) {
+            snprintf(buf, 256,
+                "Lap %i: %s",
+                i + 1,
+                stopwatch_fmt(tbuf, 256, state->reindeer[0].lap_times[i]));
+            al_draw_outlined_text(
+                font_s,
+                (i == state->reindeer[0].best_lap) ? green : gray, bg,
+                2, y, ALLEGRO_ALIGN_LEFT,
+                buf);
+            y += 2 + font_sizes[FONT_SIZE_S];
+        }
+        snprintf(buf, 256,
             "Lap %i: %s",
             state->reindeer[0].laps_finished + 1,
-            stopwatch_fmt(buf, 256, state->reindeer[0].current_lap_time));
-        if (state->reindeer[0].best_lap >= 0) {
-            double best_time = state->reindeer[0].lap_times[state->reindeer[0].best_lap];
-            snprintf(lines[i++], 512,
-                "Best: %s",
-                stopwatch_fmt(buf, 256, best_time));
-        }
-
-        num_lines = i;
-    }
-
-    for (int i = 0; i < num_lines; ++i) {
+            stopwatch_fmt(tbuf, 256, state->reindeer[0].current_lap_time));
         al_draw_outlined_text(
-            get_font(g->fonts, FONT_ASSET_UNCIALANTIQUA_REGULAR, FONT_SIZE_M),
-            al_map_rgb(255, 128, 0),
-            al_map_rgba(0, 0, 0, 200),
-            x, y, mode,
-            lines[i]);
-        y += 16;
+            font_s,
+            white, bg,
+            2, y, ALLEGRO_ALIGN_LEFT,
+            buf);
+        y += 2 + font_sizes[FONT_SIZE_S];
     }
 }
 

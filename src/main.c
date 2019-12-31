@@ -166,7 +166,7 @@ run_app(app_t *app, int fullscreen)
             char str[256];
             snprintf(str, 255, "%3.0f FPS", round(fps));
             al_draw_text(
-                get_font(fonts, FONT_ASSET_ROBOTO_REGULAR, FONT_SIZE_S),
+                get_font(fonts, FONT_ASSET_ROBOTO_MEDIUM, FONT_SIZE_S),
                 al_map_rgb(255, 128, 0),
                 0, al_get_bitmap_height(al_get_backbuffer(display)) - font_sizes[FONT_SIZE_S],
                 0,

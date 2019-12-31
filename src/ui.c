@@ -88,23 +88,23 @@ create_ui_state()
     menu_t* help_menu = make_menu();
     add_menu_item(help_menu, make_static_menu_item("** CONTROLS **"));
     add_menu_item(help_menu,
-        set_menu_item_font(FONT_ASSET_ROBOTO_REGULAR,
+        set_menu_item_font(FONT_ASSET_ROBOTO_MEDIUM,
         set_menu_item_size(FONT_SIZE_S,
         make_static_menu_item("Cursor L/R: steer left / right"))));
     add_menu_item(help_menu,
-        set_menu_item_font(FONT_ASSET_ROBOTO_REGULAR,
+        set_menu_item_font(FONT_ASSET_ROBOTO_MEDIUM,
         set_menu_item_size(FONT_SIZE_S,
         make_static_menu_item("Cursor Up/Dn: pitch down / up"))));
     add_menu_item(help_menu,
-        set_menu_item_font(FONT_ASSET_ROBOTO_REGULAR,
+        set_menu_item_font(FONT_ASSET_ROBOTO_MEDIUM,
         set_menu_item_size(FONT_SIZE_S,
         make_static_menu_item("Left Shift: accelerate"))));
     add_menu_item(help_menu,
-        set_menu_item_font(FONT_ASSET_ROBOTO_REGULAR,
+        set_menu_item_font(FONT_ASSET_ROBOTO_MEDIUM,
         set_menu_item_size(FONT_SIZE_S,
         make_static_menu_item("Left Ctrl: decelerate"))));
     add_menu_item(help_menu,
-        set_menu_item_font(FONT_ASSET_ROBOTO_REGULAR,
+        set_menu_item_font(FONT_ASSET_ROBOTO_MEDIUM,
         set_menu_item_size(FONT_SIZE_S,
         make_static_menu_item("P / Esc: pause"))));
     add_menu_item(help_menu, make_action_menu_item("<< BACK", ACTION_BACK));
