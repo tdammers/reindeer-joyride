@@ -46,6 +46,18 @@ list_tracks_callback(
     menu_t* menu = extra;
     const char* filename = strdup(al_get_fs_entry_name(entry)); 
     printf("%s\n", filename);
+    if (filename[0] == '.') {
+        return ALLEGRO_FOR_EACH_FS_ENTRY_OK;
+    }
+    const char* candidate = strstr(filename, ".tilemap");
+    if (candidate) {
+        if (strcmp(candidate, ".tilemap")) {
+            return ALLEGRO_FOR_EACH_FS_ENTRY_OK;
+        }
+    }
+    else {
+        return ALLEGRO_FOR_EACH_FS_ENTRY_OK;
+    }
     tilemap_meta_t* meta = load_tilemap_meta(filename);
     add_menu_item(menu,
         make_action_menu_item_ex(

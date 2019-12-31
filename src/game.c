@@ -294,26 +294,27 @@ void game_draw_mode7(const game_state_t* state, const render_context_t* g)
 
     double sa = sin(view.cam_angle);
     double ca = cos(view.cam_angle);
+    int view_range = 32;
 
     if (ca > 0.0) {
-        ty0 = ((int)floor(state->reindeer[0].y) >> 5) - 128;
-        ty1 = ty0 + 256;
+        ty0 = ((int)floor(state->reindeer[0].y) >> 5) - view_range;
+        ty1 = ty0 + view_range * 2;
         tdy = 1;
     }
     else {
-        ty1 = ((int)floor(state->reindeer[0].y) >> 5) - 128;
-        ty0 = ty1 + 256;
+        ty1 = ((int)floor(state->reindeer[0].y) >> 5) - view_range;
+        ty0 = ty1 + view_range * 2;
         tdy = -1;
     }
 
     if (sa < 0.0) {
-        tx0 = ((int)floor(state->reindeer[0].x) >> 5) - 128;
-        tx1 = tx0 + 256;
+        tx0 = ((int)floor(state->reindeer[0].x) >> 5) - view_range;
+        tx1 = tx0 + view_range * 2;
         tdx = 1;
     }
     else {
-        tx1 = ((int)floor(state->reindeer[0].x) >> 5) - 128;
-        tx0 = tx1 + 256;
+        tx1 = ((int)floor(state->reindeer[0].x) >> 5) - view_range;
+        tx0 = tx1 + view_range * 2;
         tdx = -1;
     }
 
