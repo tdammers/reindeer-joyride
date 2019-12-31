@@ -72,3 +72,6 @@ get_tilemap_checkpoint_x(const tilemap_t*, int);
 
 double
 get_tilemap_checkpoint_y(const tilemap_t*, int);
+
+const tilemap_meta_t*
+get_tilemap_meta(const tilemap_t*);

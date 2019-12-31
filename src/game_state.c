@@ -68,6 +68,7 @@ begin_race(game_state_t* state)
         state->reindeer[i].x = (get_tilemap_start_x(state->map) * 32.0) + 16 + i * 32 - 32 * (state->num_reindeer - 1) * 0.5;
         state->reindeer[i].y = ((get_tilemap_start_y(state->map) + 1) * 32.0) + 16;
     }
+    state->pre_race_countdown = 5.0;
 }
 
 void

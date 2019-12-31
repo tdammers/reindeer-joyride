@@ -8,6 +8,7 @@
 void
 destroy_tilemap_meta(tilemap_meta_t* m)
 {
+    if (!m) return;
     free(m->name);
     free(m->description);
     free(m);
@@ -23,6 +24,7 @@ struct tilemap_t {
     double checkpoint_x[10];
     double checkpoint_y[10];
     waypoint_list_t* ai_waypoints;
+    tilemap_meta_t* meta;
 };
 
 int
@@ -94,6 +96,7 @@ destroy_tilemap(tilemap_t *tilemap)
     free(tilemap->data);
     destroy_waypoint_list(tilemap->ai_waypoints);
     free(tilemap);
+    destroy_tilemap_meta(tilemap->meta);
 }
 
 tile_t
@@ -198,6 +201,12 @@ get_tilemap_ai_waypoints(const tilemap_t* t)
     return t->ai_waypoints;
 }
 
+const tilemap_meta_t*
+get_tilemap_meta(const tilemap_t* t)
+{
+    return t->meta;
+}
+
 
 tilemap_meta_t*
 load_tilemap_meta(const char* filename)
@@ -223,10 +232,10 @@ load_tilemap(const char* filename)
     if (!f) {
         return NULL;
     }
-    // skip the "meta" portion
-    load_tilemap_meta_f(f);
+    tilemap_meta_t* meta = load_tilemap_meta_f(f);
     fscanf(f, "%i %i\n", &w, &h);
     m = create_tilemap(w, h);
+    m->meta = meta;
     waypoint_t letter_wps[26];
     memset(letter_wps, 0, sizeof(waypoint_t) * 26);
     for (int y = 0; y < h; ++y) {

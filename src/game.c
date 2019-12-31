@@ -24,6 +24,9 @@ void game_tick(struct app_t* app, double dt)
     if (state->paused) {
         // TODO: pause mode animations
     }
+    else if (state->pre_race_countdown > 0.0) {
+        state->pre_race_countdown -= dt;
+    }
     else {
         for (size_t i = 0; i < state->num_reindeer; ++i) {
             update_brain(state->brains[i], i, state);
@@ -478,6 +481,37 @@ stopwatch_fmt(char* buf, size_t bufsize, double t)
 }
 
 void
+draw_pre_game_overlay(const game_state_t* state, const render_context_t* g)
+{
+    if (state->pre_race_countdown <= 0.0) return;
+    if (state->pre_race_countdown > 3.0) {
+        double fac = fmin(1.0, (state->pre_race_countdown - 3.0));
+        ALLEGRO_COLOR fg = al_map_rgba(255 * fac, 128 * fac, 0, 255 * fac);
+        ALLEGRO_COLOR bg = al_map_rgba(0, 0, 0, 128 * fac);
+        al_draw_outlined_text(
+            get_font(g->fonts, FONT_ASSET_UNCIALANTIQUA_REGULAR, FONT_SIZE_L),
+            fg, bg,
+            160 - 0.5 * font_sizes[FONT_SIZE_L], 120,
+            ALLEGRO_ALIGN_CENTER,
+            get_tilemap_meta(state->map)->name);
+    }
+    else {
+        int secs = (int)floor(state->pre_race_countdown);
+        double fac = state->pre_race_countdown - (double)secs;
+        char buf[16];
+        snprintf(buf, 16, "%i", secs + 1);
+        ALLEGRO_COLOR fg = al_map_rgba(255 * fac, 128 * fac, 0, 255 * fac);
+        ALLEGRO_COLOR bg = al_map_rgba(0, 0, 0, 128 * fac);
+        al_draw_outlined_text(
+            get_font(g->fonts, FONT_ASSET_UNCIALANTIQUA_REGULAR, FONT_SIZE_L),
+            fg, bg,
+            160 - 0.5 * font_sizes[FONT_SIZE_L], 120,
+            ALLEGRO_ALIGN_CENTER,
+            buf);
+    }
+}
+
+void
 draw_alti(const reindeer_t* reindeer, double cx, double cy, const render_context_t* g)
 {
     ALLEGRO_BITMAP* clock_bmp = get_image(g->images, IMG_ASSET_UI_ALTI);
@@ -631,6 +665,7 @@ game_draw(const app_t* app, const render_context_t* g)
             game_draw_map(state, g);
             break;
     }
+    draw_pre_game_overlay(state, g);
     draw_stats(state, g);
 }
 

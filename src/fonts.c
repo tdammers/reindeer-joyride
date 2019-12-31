@@ -7,7 +7,8 @@
 const int font_sizes[NUM_FONT_SIZES] = {
     10,  /* FONT_SIZE_S */
     13, /* FONT_SIZE_M */
-    18, /* FONT_SIZE_L */
+    24, /* FONT_SIZE_L */
+    48, /* FONT_SIZE_XL */
 };
 
 struct fonts_t {

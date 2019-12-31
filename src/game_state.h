@@ -18,6 +18,7 @@ typedef struct game_state_t {
     size_t num_races;
     size_t current_race;
     char** race_filenames;
+    double pre_race_countdown;
 } game_state_t;
 
 #define VIEW_MODE_TOP_DOWN 0

@@ -6,7 +6,8 @@
 #define FONT_SIZE_S 0
 #define FONT_SIZE_M 1
 #define FONT_SIZE_L 2
-#define NUM_FONT_SIZES 3
+#define FONT_SIZE_XL 3
+#define NUM_FONT_SIZES 4
 
 typedef struct fonts_t fonts_t;
 
