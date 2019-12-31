@@ -67,6 +67,7 @@ main(int argc, char **argv)
 void
 run_app(app_t *app, int fullscreen)
 {
+    srand(time(NULL));
     ALLEGRO_EVENT_QUEUE *event_queue = NULL;
     ALLEGRO_BITMAP *drawbuf = NULL;
     ALLEGRO_DISPLAY *display = NULL;
