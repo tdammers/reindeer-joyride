@@ -184,40 +184,53 @@ billboard_ground_elev_for(tile_t t)
 
 void
 draw_mode7_billboard_sprite(
+    const mode7_view* view,
+    const render_context_t* g,
+    double x, double y, double elev,
+    ALLEGRO_BITMAP* bmp)
+{
+    double sprite_x, sprite_y, sprite_size;
+
+    (void)g;
+
+    if (!mode7_unproject(view,
+            &sprite_x, &sprite_y, &sprite_size,
+            x, y, 0)) {
+        return;
+    }
+    double sw = (double)al_get_bitmap_width(bmp);
+    double sh = (double)al_get_bitmap_height(bmp);
+    double dw = sprite_size * sw;
+    double dh = sprite_size * sh;
+    al_draw_scaled_bitmap(
+        bmp,
+        0.0, 0.0,
+        sw, sh,
+        sprite_x - dw * 0.5,
+        sprite_y - dh - elev * sprite_size,
+        dw, dh,
+        0);
+}
+
+void
+draw_mode7_billboard_tile_sprite(
     const game_state_t* state,
     const mode7_view* view,
     const render_context_t* g,
     int tx,
     int ty)
 {
-    double sprite_x, sprite_y, sprite_size;
     tile_t t;
     ALLEGRO_BITMAP* billboard_bmp;
     double elev = 0.0;
     int variation = hash_tilemap_coords(tx, ty);
-
     t = tilemap_get(state->map, tx, ty);
     billboard_bmp = billboard_tile_image_for(t, g->images, variation);
     elev = billboard_ground_elev_for(t);
-
     if (billboard_bmp) {
-        if (!mode7_unproject(view,
-                &sprite_x, &sprite_y, &sprite_size,
-                (tx << 5) + 16, (ty << 5) + 16, 0)) {
-            return;
-        }
-        double sw = (double)al_get_bitmap_width(billboard_bmp);
-        double sh = (double)al_get_bitmap_height(billboard_bmp);
-        double dw = sprite_size * sw;
-        double dh = sprite_size * sh;
-        al_draw_scaled_bitmap(
-            billboard_bmp,
-            0.0, 0.0,
-            sw, sh,
-            sprite_x - dw * 0.5,
-            sprite_y - dh - elev * sprite_size,
-            dw, dh,
-            0);
+        draw_mode7_billboard_sprite(
+            view, g, (tx << 5) + 16, (ty << 5) + 16, elev,
+            billboard_bmp);
     }
 }
 
@@ -327,14 +340,14 @@ void game_draw_mode7(const game_state_t* state, const render_context_t* g)
     if (fabs(ca) > fabs(sa)) {
         for (ty = ty0; ty != ty1; ty += tdy) {
             for (tx = tx0; tx != tx1; tx += tdx) {
-                draw_mode7_billboard_sprite(state, &view, g, tx, ty);
+                draw_mode7_billboard_tile_sprite(state, &view, g, tx, ty);
             }
         }
     }
     else {
         for (tx = tx0; tx != tx1; tx += tdx) {
             for (ty = ty0; ty != ty1; ty += tdy) {
-                draw_mode7_billboard_sprite(state, &view, g, tx, ty);
+                draw_mode7_billboard_tile_sprite(state, &view, g, tx, ty);
             }
         }
     }
