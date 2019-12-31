@@ -234,6 +234,32 @@ draw_mode7_billboard_tile_sprite(
     }
 }
 
+void draw_reindeer_mode7(const game_state_t* state, const mode7_view* view, const render_context_t* g, int tx, int ty) {
+    // starting at 1: we don't want to draw the player's own reindeer
+    for (size_t i = 1; i < state->num_reindeer; ++i) {
+        reindeer_t* r = state->reindeer + i;
+        int rtx = (int)floor(r->x / 32.0);
+        int rty = (int)floor(r->y / 32.0);
+        if (rtx != tx || rty != ty) continue;
+        const int num_angles = 4;
+        const int num_frames = 4;
+        int angle = (int)floor((double)num_angles * (r->angle - view->cam_angle + M_PI) / (2.0 * M_PI) - 0.5) % num_angles;
+        int frame = (int)floor(r->bob_phase * 2.0 / M_PI * 0.5 * (double)num_frames) % num_frames;
+        while (angle < 0) angle += num_angles;
+        while (frame < 0) frame += num_frames;
+        int sprite_index =
+                IMG_ASSET_SPRITE_REINDEER_NPC_F0R0
+                    + frame * num_angles
+                    + angle;
+        ALLEGRO_BITMAP* sprite = get_image(g->images, sprite_index);
+        if (!sprite) {
+            fprintf(stderr, "Warning: reindeer sprite not found for F%iR%i (#%i)\n",
+                frame, angle, sprite_index);
+        }
+        draw_mode7_billboard_sprite(view, g, r->x, r->y, r->alt, sprite);
+    }
+}
+
 void game_draw_mode7(const game_state_t* state, const render_context_t* g)
 {
     tile_t t;
@@ -340,6 +366,7 @@ void game_draw_mode7(const game_state_t* state, const render_context_t* g)
     if (fabs(ca) > fabs(sa)) {
         for (ty = ty0; ty != ty1; ty += tdy) {
             for (tx = tx0; tx != tx1; tx += tdx) {
+                draw_reindeer_mode7(state, &view, g, tx, ty);
                 draw_mode7_billboard_tile_sprite(state, &view, g, tx, ty);
             }
         }
@@ -347,6 +374,7 @@ void game_draw_mode7(const game_state_t* state, const render_context_t* g)
     else {
         for (tx = tx0; tx != tx1; tx += tdx) {
             for (ty = ty0; ty != ty1; ty += tdy) {
+                draw_reindeer_mode7(state, &view, g, tx, ty);
                 draw_mode7_billboard_tile_sprite(state, &view, g, tx, ty);
             }
         }

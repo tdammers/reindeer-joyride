@@ -33,6 +33,7 @@ init_reindeer(reindeer_t *reindeer, const char* name)
     reindeer->max_climb_rate = 100.0;
     reindeer->grip = 500.0;
     reindeer->best_lap = -1;
+    reindeer->bob_phase = (double)rand() / (double)RAND_MAX * M_PI * 2.0;
 
     if (!name && !reindeer->name) {
         name = default_reindeer_name(rand());

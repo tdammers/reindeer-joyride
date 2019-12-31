@@ -15,11 +15,11 @@
    version="1.1"
    id="svg8"
    inkscape:version="0.92.4 (5da689c313, 2019-01-14)"
-   sodipodi:docname="reindeer-npc-f0r2.svg"
+   sodipodi:docname="reindeer-npc-f0r3.svg"
    inkscape:export-filename="/home/tobias/devel/krampus2019/data/img/sprites/reindeer-fpv.png"
    inkscape:export-xdpi="96"
    inkscape:export-ydpi="96"
-   style="shape-rendering:crispEdges">
+   shape-rendering="crispEdges">
   <defs
      id="defs2" />
   <sodipodi:namedview
@@ -86,31 +86,15 @@
     </g>
     <path
        style="fill:#aa4400;fill-opacity:1;fill-rule:evenodd;stroke:#552200;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="m 3.1682812,292.71911 c -0.339082,0.43179 -0.2159187,0.72788 -0.1519287,1.12086 0.04791,0.3369 0.3177743,0.52257 0.4382161,0.81649 -0.015814,0.32061 -0.029009,0.64265 0.014986,0.9617 0.026835,0.35124 0.057661,0.7026 0.076998,1.0542 0.1041398,0.155 0.3325056,0.0928 0.3927409,-0.0672 0.1041,-0.15128 -0.00353,-0.31398 0.020153,-0.47336 0.026288,-0.4593 -0.037723,-1.38079 -0.037723,-1.38079 l 0.3116088,-0.1049 0.3121258,0.1049 c 0,0 -0.064528,0.92149 -0.038241,1.38079 0.023688,0.15938 -0.083429,0.32208 0.020672,0.47336 0.060235,0.16 0.2880844,0.22218 0.3922239,0.0672 0.019336,-0.3516 0.05068,-0.70296 0.077515,-1.0542 0.043995,-0.31905 0.030283,-0.64109 0.01447,-0.9617 0.1204415,-0.29392 0.3903062,-0.47959 0.4382161,-0.81649 0.06399,-0.39298 0.1871533,-0.68907 -0.1519288,-1.12086 -0.3022822,-0.19958 -1.8363422,-0.35367 -2.1301024,0 z"
-       id="path5212"
-       inkscape:connector-curvature="0"
-       sodipodi:nodetypes="cccccccccccccccccc" />
-    <path
-       style="fill:#aa4400;fill-opacity:1;fill-rule:evenodd;stroke:#552200;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        d="m 4.2817273,291.36245 c -0.2660675,0.011 -0.5781625,0.35147 -0.582412,0.59691 -0.025569,1.47683 1.0594311,1.30435 1.0684708,0.1291 -0.020404,-0.48572 -0.2197343,-0.73699 -0.4860588,-0.72601 z"
        id="path5188"
        inkscape:connector-curvature="0"
        sodipodi:nodetypes="sscs" />
-    <g
-       id="g5210"
-       transform="translate(-0.71498057)">
-      <path
-         style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:0.26458332px;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1"
-         d="m 5.2020309,292.09046 0.2098804,-0.002"
-         id="path5200"
-         inkscape:connector-curvature="0"
-         sodipodi:nodetypes="cc" />
-      <path
-         sodipodi:nodetypes="cc"
-         inkscape:connector-curvature="0"
-         id="path5202"
-         d="m 4.4847165,292.09046 0.2098804,-0.002"
-         style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:0.26458332px;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1" />
-    </g>
+    <path
+       style="fill:#aa4400;fill-opacity:1;fill-rule:evenodd;stroke:#552200;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 3.1682812,292.71911 c -0.339082,0.43179 -0.2159187,0.72788 -0.1519287,1.12086 0.04791,0.3369 0.3177743,0.52257 0.4382161,0.81649 -0.015814,0.32061 -0.029009,0.64265 0.014986,0.9617 0.026835,0.35124 0.057661,0.7026 0.076998,1.0542 0.1041398,0.155 0.3325056,0.0928 0.3927409,-0.0672 0.1041,-0.15128 -0.00353,-0.31398 0.020153,-0.47336 0.026288,-0.4593 -0.037723,-1.38079 -0.037723,-1.38079 l 0.3116088,-0.1049 0.3121258,0.1049 c 0,0 -0.064528,0.92149 -0.038241,1.38079 0.023688,0.15938 -0.083429,0.32208 0.020672,0.47336 0.060235,0.16 0.2880844,0.22218 0.3922239,0.0672 0.019336,-0.3516 0.05068,-0.70296 0.077515,-1.0542 0.043995,-0.31905 0.030283,-0.64109 0.01447,-0.9617 0.1204415,-0.29392 0.3903062,-0.47959 0.4382161,-0.81649 0.06399,-0.39298 0.1871533,-0.68907 -0.1519288,-1.12086 -0.3022822,-0.19958 -1.8363422,-0.35367 -2.1301024,0 z"
+       id="path5212"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cccccccccccccccccc" />
   </g>
 </svg>
