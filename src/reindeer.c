@@ -3,8 +3,24 @@
 #include <math.h>
 #include <string.h>
 
+const char*
+default_reindeer_name(size_t index)
+{
+    switch (index % 8) {
+        case 0: return "Dasher";
+        case 1: return "Dancer";
+        case 2: return "Prancer";
+        case 3: return "Vixen";
+        case 4: return "Comet";
+        case 5: return "Cupid";
+        case 6: return "Donder";
+        case 7: return "Blitzen";
+        default: return "Rudolph"; // this shouldn't happen
+    }
+}
+
 void
-init_reindeer(reindeer_t *reindeer)
+init_reindeer(reindeer_t *reindeer, const char* name)
 {
     memset(reindeer, 0, sizeof(reindeer_t));
     reindeer->acceleration = 100.0;
@@ -17,10 +33,25 @@ init_reindeer(reindeer_t *reindeer)
     reindeer->max_climb_rate = 100.0;
     reindeer->grip = 500.0;
     reindeer->best_lap = -1;
+
+    if (!name && !reindeer->name) {
+        name = default_reindeer_name(rand());
+    }
+    if (name) {
+        free(reindeer->name);
+        reindeer->name = strdup(name);
+    }
 }
 
 void
-update_reindeer(reindeer_t *reindeer, const tilemap_t *map, double dt)
+cleanup_reindeer(reindeer_t* reindeer)
+{
+    free(reindeer->name);
+    reindeer->name = NULL;
+}
+
+void
+update_reindeer(reindeer_t *reindeer, const tilemap_t *map, int num_laps, double dt)
 {
     tile_t t;
     double ground_elev;
@@ -173,29 +204,31 @@ update_reindeer(reindeer_t *reindeer, const tilemap_t *map, double dt)
     }
 
     // handle checkpoint logic
-    reindeer->current_lap_time += dt;
-    reindeer->race_time += dt;
-    if (reindeer->alt <= 32) {
-        if (reindeer->next_checkpoint >= 0 &&
-                t == CHECKPOINT0_TILE + reindeer->next_checkpoint) {
-            reindeer->next_checkpoint++;
-            if (reindeer->next_checkpoint > get_tilemap_max_checkpoint(map)) {
-                reindeer->next_checkpoint = -1;
+    if (reindeer->laps_finished < num_laps) {
+        reindeer->current_lap_time += dt;
+        reindeer->race_time += dt;
+        if (reindeer->alt <= 32) {
+            if (reindeer->next_checkpoint >= 0 &&
+                    t == CHECKPOINT0_TILE + reindeer->next_checkpoint) {
+                reindeer->next_checkpoint++;
+                if (reindeer->next_checkpoint > get_tilemap_max_checkpoint(map)) {
+                    reindeer->next_checkpoint = -1;
+                }
             }
-        }
-        else if (reindeer->next_checkpoint == -1 &&
-                    t == START_FINISH_TILE) {
-            if (reindeer->laps_finished < 32) {
-                reindeer->lap_times[reindeer->laps_finished] =
-                    reindeer->current_lap_time;
+            else if (reindeer->next_checkpoint == -1 &&
+                        t == START_FINISH_TILE) {
+                if (reindeer->laps_finished < 32) {
+                    reindeer->lap_times[reindeer->laps_finished] =
+                        reindeer->current_lap_time;
+                }
+                if (reindeer->best_lap < 0 ||
+                    reindeer->current_lap_time < reindeer->lap_times[reindeer->best_lap]) {
+                    reindeer->best_lap = reindeer->laps_finished;
+                }
+                reindeer->current_lap_time = 0.0;
+                reindeer->laps_finished++;
+                reindeer->next_checkpoint = 0;
             }
-            if (reindeer->best_lap < 0 ||
-                reindeer->current_lap_time < reindeer->lap_times[reindeer->best_lap]) {
-                reindeer->best_lap = reindeer->laps_finished;
-            }
-            reindeer->current_lap_time = 0.0;
-            reindeer->laps_finished++;
-            reindeer->next_checkpoint = 0;
         }
     }
 

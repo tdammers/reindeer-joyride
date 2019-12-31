@@ -1,5 +1,6 @@
 #include "util.h"
 #include <stdio.h>
+#include <math.h>
 
 int min(int a, int b) { return (a < b) ? a : b; }
 int max(int a, int b) { return (a > b) ? a : b; }
@@ -29,3 +30,12 @@ die(const char* msg)
     exit(-1);
 }
 
+
+int
+fsign(double a)
+{
+    if (a == 0.0)
+        return 0;
+    else
+        return (a > 0.0) ? 1 : -1;
+}

@@ -36,6 +36,7 @@ typedef struct reindeer_t {
     double current_lap_time;
 
     // stats
+    char* name;
     double acceleration;
     double max_speed;
     double rolling_friction;
@@ -48,10 +49,10 @@ typedef struct reindeer_t {
 } reindeer_t;
 
 void
-init_reindeer(reindeer_t *reindeer);
+init_reindeer(reindeer_t *reindeer, const char* name);
 
 void
-update_reindeer(reindeer_t *reindeer, const tilemap_t* map, double dt);
+update_reindeer(reindeer_t *reindeer, const tilemap_t* map, int num_laps, double dt);
 
 double
 get_heading_to(const reindeer_t* reindeer, double tx, double ty);

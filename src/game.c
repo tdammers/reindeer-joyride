@@ -28,12 +28,15 @@ void game_tick(struct app_t* app, double dt)
         state->pre_race_countdown -= dt;
     }
     else {
+        state->menu_anim_phase += dt;
+        state->menu_anim_phase = fmod(state->menu_anim_phase, 1.0);
         for (size_t i = 0; i < state->num_reindeer; ++i) {
             update_brain(state->brains[i], i, state);
         }
         for (size_t i = 0; i < state->num_reindeer; ++i) {
-            update_reindeer(state->reindeer + i, state->map, dt);
+            update_reindeer(state->reindeer + i, state->map, state->num_laps, dt);
         }
+        recalc_ranking(state);
     }
 }
 
@@ -297,7 +300,7 @@ void game_draw_mode7(const game_state_t* state, const render_context_t* g)
 
     double sa = sin(view.cam_angle);
     double ca = cos(view.cam_angle);
-    int view_range = 32;
+    int view_range = 64;
 
     if (ca > 0.0) {
         ty0 = ((int)floor(state->reindeer[0].y) >> 5) - view_range;
@@ -481,9 +484,8 @@ stopwatch_fmt(char* buf, size_t bufsize, double t)
 }
 
 void
-draw_pre_game_overlay(const game_state_t* state, const render_context_t* g)
+draw_game_overlay(const game_state_t* state, const render_context_t* g)
 {
-    if (state->pre_race_countdown <= 0.0) return;
     if (state->pre_race_countdown > 3.0) {
         double fac = fmin(1.0, (state->pre_race_countdown - 3.0));
         ALLEGRO_COLOR fg = al_map_rgba(255 * fac, 128 * fac, 0, 255 * fac);
@@ -491,11 +493,11 @@ draw_pre_game_overlay(const game_state_t* state, const render_context_t* g)
         al_draw_outlined_text(
             get_font(g->fonts, FONT_ASSET_UNCIALANTIQUA_REGULAR, FONT_SIZE_L),
             fg, bg,
-            160 - 0.5 * font_sizes[FONT_SIZE_L], 120,
+            160, 120 - 0.5 * font_sizes[FONT_SIZE_L],
             ALLEGRO_ALIGN_CENTER,
             get_tilemap_meta(state->map)->name);
     }
-    else {
+    else if (state->pre_race_countdown > 0.0) {
         int secs = (int)floor(state->pre_race_countdown);
         double fac = state->pre_race_countdown - (double)secs;
         char buf[16];
@@ -505,7 +507,7 @@ draw_pre_game_overlay(const game_state_t* state, const render_context_t* g)
         al_draw_outlined_text(
             get_font(g->fonts, FONT_ASSET_UNCIALANTIQUA_REGULAR, FONT_SIZE_L),
             fg, bg,
-            160 - 0.5 * font_sizes[FONT_SIZE_L], 120,
+            160, 120 - 0.5 * font_sizes[FONT_SIZE_L],
             ALLEGRO_ALIGN_CENTER,
             buf);
     }
@@ -625,7 +627,7 @@ draw_stats(const game_state_t* state, const render_context_t* g)
 
         y += 2 + font_sizes[FONT_SIZE_M];
 
-        for (int i = 0; i < state->reindeer[0].laps_finished; ++i) {
+        for (int i = 0; i < min(state->reindeer[0].laps_finished, state->num_laps); ++i) {
             snprintf(buf, 256,
                 "Lap %i: %s",
                 i + 1,
@@ -637,16 +639,63 @@ draw_stats(const game_state_t* state, const render_context_t* g)
                 buf);
             y += 2 + font_sizes[FONT_SIZE_S];
         }
-        snprintf(buf, 256,
-            "Lap %i: %s",
-            state->reindeer[0].laps_finished + 1,
-            stopwatch_fmt(tbuf, 256, state->reindeer[0].current_lap_time));
-        al_draw_outlined_text(
-            font_s,
-            white, bg,
-            2, y, ALLEGRO_ALIGN_LEFT,
-            buf);
-        y += 2 + font_sizes[FONT_SIZE_S];
+        if (state->reindeer[0].laps_finished < state->num_laps) {
+            snprintf(buf, 256,
+                "Lap %i: %s",
+                state->reindeer[0].laps_finished + 1,
+                stopwatch_fmt(tbuf, 256, state->reindeer[0].current_lap_time));
+            al_draw_outlined_text(
+                font_s,
+                white, bg,
+                2, y, ALLEGRO_ALIGN_LEFT,
+                buf);
+            y += 2 + font_sizes[FONT_SIZE_S];
+        }
+
+        int font = FONT_ASSET_ROBOTO_MEDIUM;
+        int size = FONT_SIZE_S;
+        double x0 = 320 - font_sizes[size] * 10;
+        double y0 = 2;
+        if (state->reindeer[0].laps_finished >= state->num_laps) {
+            font = FONT_ASSET_UNCIALANTIQUA_REGULAR;
+            size = FONT_SIZE_M;
+            y0 = 120 - (0.5 * (double)state->num_reindeer) * font_sizes[size];
+            x0 = 80;
+        }
+        for (size_t i = 0; i < state->num_reindeer; ++i) {
+            reindeer_t* reindeer = state->reindeer + state->ranking[i];
+            double fac = sin(state->menu_anim_phase * 2.0 * M_PI);
+            ALLEGRO_COLOR fg =
+                (state->ranking[i] == 0) ?
+                al_map_rgb(192 + 64 * fac, 192 + 64 * fac, 32) :
+                (reindeer->laps_finished >= state->num_laps) ?
+                al_map_rgb(255, 255, 255) :
+                al_map_rgb(240, 120, 0);
+            ALLEGRO_COLOR bg = al_map_rgba(0, 0, 0, 128);
+            double y = y0 + (double)i * font_sizes[size];
+            snprintf(buf, 256, "%i", (int)(i + 1));
+            al_draw_outlined_text(
+                get_font(g->fonts, font, size),
+                fg, bg,
+                x0, y,
+                ALLEGRO_ALIGN_LEFT,
+                buf);
+            al_draw_outlined_text(
+                get_font(g->fonts, font, size),
+                fg, bg,
+                x0 + font_sizes[size], y,
+                ALLEGRO_ALIGN_LEFT,
+                reindeer->name);
+            if (reindeer->laps_finished >= state->num_laps) {
+                stopwatch_fmt(buf, 256, reindeer->race_time);
+                al_draw_outlined_text(
+                    get_font(g->fonts, font, size),
+                    fg, bg,
+                    x0 + font_sizes[size] * 6, y,
+                    ALLEGRO_ALIGN_LEFT,
+                    buf);
+            }
+        }
     }
 }
 
@@ -665,7 +714,7 @@ game_draw(const app_t* app, const render_context_t* g)
             game_draw_map(state, g);
             break;
     }
-    draw_pre_game_overlay(state, g);
+    draw_game_overlay(state, g);
     draw_stats(state, g);
 }
 

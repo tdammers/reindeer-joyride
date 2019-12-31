@@ -18,3 +18,6 @@ al_draw_outlined_text(
 
 void
 die(const char* msg);
+
+int
+fsign(double a);
