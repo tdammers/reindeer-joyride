@@ -1,0 +1,127 @@
+Reindeer Joyride
+================
+
+About
+-----
+
+Reindeer Joyride is a good old classic "mode 7" style arcade racer, created
+for Krampushack 2019. It was heavily influenced by classic NES / SNES games
+like Mario Kart and F-Zero, as well as the PC Mario Kart lookalike, Wacky
+Wheels, all of them among my favorite games of the era. There's also some
+influence from the top-down-ish third-person 3D racer "Ignition", another
+classic game I've played to pieces.
+
+When Santa is out of town (or whatever they call the dwelling he inhabits on
+the North Pole with his elves), the elves and/or the reindeer (I haven't quite
+made up my mind) organize little reindeer races for fun. Of course all of this
+is highly illegal, and super dangerous. Or so I've been told. Anyway. I didn't
+quite get to put in all the features I wanted; heck, I didn't even manage to
+create sounds or music for this game (if you want, consider it a pretentious
+symbol of protest against the cacophony of modern society; if you don't want to
+do that, then that's fine too).
+
+Oh, and by the way, Santa's reindeer can fly, so make sure you use this ability
+to your advantage.
+
+Building
+--------
+
+- Install Allegro 5. I used 5.2.4 from Debian, but the current release should
+  also work. If you're on Debian, `apt install liballegro5-dev` should do the
+  trick.
+- You will also need GNU make (or a compatible replacement, I haven't tested it
+  against anything else), a working C compiler (I tested against gcc 8.3.0),
+  and a working Python 3 install.
+- In the source bundle's root directory, type `make` (or `make release`) to
+  create a release build, or `make debug` to create a debug build.
+- A `joyride` binary will be built in `bin/{debug,release}/joyride`, and
+  symlinked into the project root, from where you should run it.
+
+Running
+-------
+
+The `joyride` binary takes one optional argument: `--fullscreen`. Without it,
+it will run windowed, with it, it runs in a fullscreen window.
+
+Controls
+--------
+
+Cursor keys control "rudder" (turn left / right) and "elevator" (pitch up /
+down). Just like in an airplane, the "up" arrow corresponds to "pushing" the
+nose down, and the "down" arrow "pulls" the nose up. If you don't like this,
+tough luck, because I didn't have enough time left to give you configurable
+controls.
+
+Left Shift accelerates, Left Control brakes (though this is a racer, so you
+probably want to avoid that).
+
+Note that the reindeer's movement has some quirks:
+
+- On the ground, you have much better traction, so you can make tighter turns.
+- Over water, you will be very slow, unless you are flying.
+- When you fly too slow, you will sink to the ground, a bit like stalling in
+  a real aircraft (though modeled rather inaccurately on purpose).
+
+Krampushack
+-----------
+
+My original giftee had posted the following wishlist:
+
+* Arcade. Can be action, adventure, puzzle or whatever, but think about
+  good-old arcade games, you insert a token, press 1P and start to play. And
+  also simple input: a joystick and a couple of action buttons.
+* It would be cool if it is moddable. I mean, a way to modify or add content
+  (levels, characters, items) to the game without modifying the sources. If
+  you'll add scripting, make it simple (no C#, JavaScript or similar). A list
+  of commands or a definition file are enough in a lot of cases. (I like
+  QuickBASIC *wink* *wink*).
+* Fun.
+
+I think I've captured these quite well - the controls are as simple as it gets,
+one directional input and two buttons.
+
+The game is moddable, in the sense that you can provide racing tracks as ASCII
+files (they are all in `./data/maps`). I had originally planned to also have
+similar file formats for "series" (with a knock-out system, point rankings,
+and an unlocking mechanism) and individual reindeer "personalities" (the
+game physics already come prepared for modifying various reindeer performance
+characteristics like top speed, climb rate, accelerations, grip, etc., and I
+had envisioned that each of the 8 classic reindeer would have a personality of
+its own).
+
+Hopefully, it's also fun; if I had managed to make more time, I could have done
+more - the AI players are ridiculously stupid and routinely get stuck, the
+existing tracks need better tweaking, and there have to be more of them. A
+reindeer stat system, an unlocking mechanism, race series, etc., would probably
+also have made it more fun. I hope it's still plenty of fun - in any case, I
+drew inspiration from some of the most fun games I've ever played.
+
+However, my original giftee pulled out, and I got another one assigned on short
+notice; his wishlist:
+
+* Has a wonderful moving story, that takes place in some mysterious place, and
+  follows the basic theory of "the hero's journey"
+* Uses a tile map of some kind.
+* Has dialog between multiple characters.
+* Involves a robot who wishes the best for his master.
+
+The engine was already tile based, so yay for me; but with only 3 days to go, I
+utterly failed at hitting any of the others. Well, at least I can have Santa's
+ASCII robot in the README:
+
+      o
+      |       ___________________________________
+    +---+    /                                   \
+    |O O|  <  I wish all the best for you, Santa! |
+    |===|    \___________________________________/
+ +--+---+--+
+ |  |   |  |
+
+So, have fun, enjoy, and maybe I'll keep working on it after the competition
+ends. Bugging me about it might very well help with that.
+
+Cheers,
+
+Tobias
+
+tdammers@gmail.com
